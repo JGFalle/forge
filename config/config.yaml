@@ -1,0 +1,257 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FORGE — config.yaml
+# All user-facing settings live here. No personal info lives in source files.
+#
+# SETUP ORDER:
+#   1. [person]          — your contact info and resume filename
+#   2. [career_history]  — your roles, most-recent first
+#   3. [identity]        — how you want to be positioned
+#   4. [key_achievements]— your 2-4 strongest career proof points
+#   5. [defensibility_notes] — rules to avoid overclaiming
+#   6. [target_companies]— tiered company list for scoring
+#   7. [user_skills]     — your skill set (Workday-compatible terms)
+#   8. [discovery]       — job search targets, locations, and alert config
+#   9. [comp_floors]     — your compensation requirements
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Personal Info ─────────────────────────────────────────────────────────────
+person:
+  name: "Your Name"                          # e.g. Jane Smith
+  email: "your@email.com"                    # used in cover letters and tracker
+  phone: "555-555-5555"                      # e.g. 404.555.1234
+  location: "City, State"                    # e.g. Atlanta, GA
+  linkedin: "linkedin.com/in/your-handle"    # no https:// prefix
+  resume_filename: "YourName_Resume.docx"    # output filename — never changes
+  # Your degree/university — used in people intel outreach personalization
+  education: "University Name — Degree Program"
+  # Year your professional career began (used to compute years of experience accurately)
+  career_start_year: 2018
+
+
+# ── Career History ────────────────────────────────────────────────────────────
+# List your roles most-recent first.
+#
+# FIELD GUIDE:
+#   id           — short slug, becomes the role_identifier in tailoring JSON
+#   company      — exact company name
+#   title        — exact title held
+#   period       — display string shown in resume (e.g. "Jan 2024 – Present")
+#   anchor_text  — a UNIQUE string that appears in your DOCX section header.
+#                  The script searches for this text to find where to apply changes.
+#                  Must match text in your base_resume.docx exactly.
+#   modifiable   — true: Claude will generate replacement bullets for this role
+#   max_bullets  — caps the number of bullets Claude generates (hard constraint)
+#
+# Typically your 2 most-recent roles are modifiable. Older roles stay as-is.
+career_history:
+  - id: "current_role"
+    company: "Your Current Company"
+    title: "Your Current Title"
+    period: "Jan 2024 – Present"
+    anchor_text: "Your Current Title"        # must exist verbatim in your DOCX
+    modifiable: true
+    max_bullets: 3
+
+  - id: "prev_role"
+    company: "Previous Company"
+    title: "Previous Title"
+    period: "Jan 2020 – Dec 2023"
+    anchor_text: "Previous Title"            # must exist verbatim in your DOCX
+    modifiable: true
+    max_bullets: 5
+
+  - id: "older_role_1"
+    company: "Older Company"
+    title: "Older Title"
+    period: "Jan 2018 – Dec 2019"
+    anchor_text: "Older Title"
+    modifiable: false                        # kept as-is; not modified by script
+
+  # Add more roles following the same pattern
+
+
+# ── Professional Identity ─────────────────────────────────────────────────────
+# How you want to be positioned in every resume and cover letter.
+# The pipeline leads with #1, supports with #2, and buries #3.
+identity:
+  primary: "Data and AI/ML-driven Operations leader"
+  secondary: "Digital Transformation and Industrial Automation leader"
+  # This framing should never be the lead — buried, never first:
+  avoid_leading_with: "Pure process improvement / Lean practitioner"
+  # Your seniority targets (used by fit assessor for scope scoring)
+  target_levels:
+    - "Director"
+    - "Senior Director"
+    - "Principal"
+
+
+# ── Key Career Achievements ───────────────────────────────────────────────────
+# 2-4 specific proof points used in resume summary, tailoring prompts, fit scoring.
+# Be specific: dollar amounts, scale, technology names, measurable outcomes.
+# Each figure may appear AT MOST ONCE across the resume summary.
+key_achievements:
+  - "Led $X initiative resulting in Y outcome at Company Z"
+  - "PM'd full lifecycle of [program name] deploying [technologies] across [scale]"
+  - "Contributed to [metric improvement] at [Company] under [context]"
+
+
+# ── Defensibility Notes ────────────────────────────────────────────────────────
+# Rules Claude MUST follow to avoid overclaiming your experience.
+# Think of these as constraints — they prevent fabrication.
+defensibility_notes:
+  - "Use 'contributed to' for company-level outcomes not solely your work"
+  - "Years of experience: career started [YEAR]. Write '[X] years' only — never inflate."
+  - "Consulting: multiple client engagements. Do not imply a single-client practice."
+  # Add specific phrasing rules for sensitive topics (gaps, exits, overlaps, etc.)
+
+
+# ── Target Companies ──────────────────────────────────────────────────────────
+# Tiered company list used by fit assessor (company_tier scoring) and discovery scorer.
+# Tier 1 = dream operator seats  (score 9-10)
+# Tier 2 = tech / automation adjacent (score 7-8)
+# Tier 3 = consulting bridge — acceptable, not ideal (score 5-6)
+target_companies:
+  tier1:
+    - "Company A"
+    - "Company B"
+    - "Company C"
+  tier2:
+    - "Company D"
+    - "Company E"
+  tier3:
+    - "Consulting Firm A"
+    - "Consulting Firm B"
+
+
+# ── Compensation Floors ────────────────────────────────────────────────────────
+comp_floors:
+  # Your aspirational base floor (STRETCH flag fires if posted comp falls below this)
+  target_floor: 175000
+  # Auto-reject threshold — hard filter if a posting explicitly states comp below this
+  hard_filter_floor: 140000
+  # Long-term goals used in negotiation briefs
+  sr_target: 220000
+  vp_target: 300000
+  # Consulting day rates
+  day_rate_analysis: 1500
+  day_rate_implementation: 1800
+
+
+# ── Follow-Up Timing (days before outreach is due) ────────────────────────────
+followup:
+  applied_cold_days: 7         # Applied cold, no response
+  applied_warm_days: 5         # Applied with warm referral, no response
+  recruiter_quiet_days: 3      # Recruiter-initiated, they go quiet
+  phone_screen_days: 5         # After phone screen, no next steps communicated
+  interview_days: 7            # After interview, no decision communicated
+  final_round_days: 5          # After final round, no decision
+  max_silence_days: 14         # Any stage — escalate if silent this long
+
+
+# ── Tailoring Constraints ─────────────────────────────────────────────────────
+tailoring:
+  summary_max_chars: 500
+  cover_letter_words_max: 150
+  # Enable the 3-model council review pass (requires Perplexity API key)
+  council_enabled: true
+  # Pause before rendering DOCX so you can review/edit the tailoring JSON first
+  review_gate: true
+
+
+# ── User Skills ───────────────────────────────────────────────────────────────
+# Your full skill set. Used for Workday skills recommendations in the exec summary.
+# Lowercase preferred. Use exact terminology your target ATS systems recognize.
+user_skills:
+  - machine learning
+  - predictive analytics
+  - data analytics
+  - python
+  - sql
+  - power bi
+  - tableau
+  - data visualization
+  - digital transformation
+  - industrial automation
+  - supply chain management
+  - supply chain optimization
+  - logistics
+  - inventory management
+  - demand planning
+  - operations management
+  - process improvement
+  - continuous improvement
+  - change management
+  - program management
+  - project management
+  - strategic planning
+  - stakeholder management
+  # Add your full skill set here — the more specific, the better Workday matching
+
+
+# ── Discovery ─────────────────────────────────────────────────────────────────
+discovery:
+  # Path to opportunity tracker CSV (GDrive recommended so it syncs across devices)
+  tracker_csv: "~/path/to/opportunity_tracker.csv"
+  # Email for weekly discovery digest
+  digest_to: "your@email.com"
+  digest_from: "your@email.com"
+  stale_tbd_days: 21           # auto-pass TBD rows older than this many days
+  lookback_days: 7             # how far back scrapers pull new postings
+  # Titles to search for
+  target_titles:
+    - "Director of Operations"
+    - "Senior Director of Operations"
+    - "Director of Supply Chain"
+    # Add titles relevant to your target level and function
+  # Metro areas to search in
+  search_locations:
+    - city: "Your City, State"
+      radius: 50
+    # Add more cities or remove unwanted ones
+  include_remote: true         # also run a national remote-only search pass
+  salary_floor: 150000         # advisory — surfaced in tracker for reference
+  salary_filter_floor: 140000  # hard filter — skip postings clearly below this
+  # Gmail label where job alert emails are routed (for --email-check mode)
+  alert_email_label: "FORGE/Alerts"
+  # Workday tenant configs for direct company scraping (leave empty if not needed)
+  workday_tenants: []
+  # Example entry:
+  # workday_tenants:
+  #   - name: Target Company Name
+  #     tenant: companyslug
+  #     site: wd5
+  #     slug: company-careers-page-slug
+
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+paths:
+  base_resume: assets/base_resume.docx       # YOUR resume DOCX — see assets/README.md
+  inputs_dir: inputs/
+  outputs_dir: outputs/
+  tracker_file: outputs/application_tracker.json
+
+
+# ── Google Drive (optional) ───────────────────────────────────────────────────
+# When enabled, the pipeline syncs all output files to your GDrive automatically.
+# Requires completing the Google OAuth setup — see README.md for instructions.
+gdrive:
+  enabled: false
+  # Your GDrive local mount path (macOS default shown below)
+  mount_base: "~/Library/CloudStorage/GoogleDrive-your@email.com/My Drive"
+  # Folder path inside My Drive where application folders will be created
+  applications_folder: "Job Search/Applications"
+
+google_docs:
+  # Optional: your base resume Google Doc ID (enables pulling latest version from GDrive)
+  # Find the ID in the URL: docs.google.com/document/d/THIS_IS_THE_ID/edit
+  base_resume: ""
+
+
+# ── Pipeline Behavior ──────────────────────────────────────────────────────────
+pipeline:
+  # Seconds to wait for a file drop before timing out (0 = wait forever)
+  drop_timeout_seconds: 0
+  # Sync outputs to GDrive after each run (requires gdrive.enabled: true above)
+  gdrive_sync: false
+  # Open the output folder in Finder/Explorer when the pipeline finishes
+  open_output_folder: true

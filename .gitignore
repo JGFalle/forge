@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Credentials — NEVER commit these
+config/credentials.json
+config/token.json
+.env
+
+# Your personal config — contains your name, career history, etc.
+# Each user fills this in from config/config.yaml (the template already in repo)
+# Uncomment the line below if you want to keep your config out of version control:
+# config/config.yaml
+
+# Application outputs and inputs — your personal job search data
+outputs/
+inputs/
+logs/
+
+# Your base resume — personal document, do not commit
+assets/base_resume.docx
+assets/base_resume_v9.docx
+
+# macOS
+.DS_Store
