@@ -1,4 +1,5 @@
 # FORGE
+### Fit-scored Opportunity Research, Generation & Evaluation
 
 Precision job application pipeline. Drop a JD PDF. Get a tailored resume, cover letter, and hiring manager intel in about 2 minutes.
 
