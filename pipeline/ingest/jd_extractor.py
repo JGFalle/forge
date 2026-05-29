@@ -1,7 +1,7 @@
 """Extract company name and role title from raw JD text via Claude.
 
 Fires only when regex parsing in jd_parser.py leaves company/role empty.
-Uses haiku for speed and cost — this is a simple extraction task.
+Uses haiku for speed and cost - this is a simple extraction task.
 Returns ("", "") on failure so the caller can fall back to interactive prompt.
 """
 
@@ -28,7 +28,7 @@ Job description (first 2000 chars):
 def extract_company_role(raw_text: str) -> tuple[str, str]:
     """
     Call Claude haiku to extract company and role from raw JD text.
-    Returns (company, role) — either or both may be "" on failure.
+    Returns (company, role) - either or both may be "" on failure.
     """
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:

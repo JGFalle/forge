@@ -1,4 +1,4 @@
-"""Generate tailoring JSON via Claude API — replaces the manual Claude.ai paste step.
+"""Generate tailoring JSON via Claude API - replaces the manual Claude.ai paste step.
 
 Calls the same prompt template used for human-in-the-loop mode, but routes
 the output through the API directly. Strips em dashes, validates schema,

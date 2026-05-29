@@ -1,4 +1,4 @@
-"""LinkedIn profile optimizer — generates optimized content for all key sections.
+"""LinkedIn profile optimizer: generates optimized content for all key sections.
 
 Generates headline, About, experience descriptions, skills, and recruiter keyword
 recommendations using Claude Sonnet. Outputs a structured JSON artifact that

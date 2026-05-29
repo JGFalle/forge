@@ -1,6 +1,6 @@
 """Render a people intelligence markdown file to a styled PDF.
 
-Flexible markdown renderer — handles any markdown structure Claude generates.
+Flexible markdown renderer, handles any markdown structure Claude generates.
 H1 (#) becomes the document title/hero. H2 (##) becomes navy section bars.
 H3 (###), bullets, bold, paragraphs all render cleanly.
 """
@@ -131,7 +131,7 @@ def _build_story(md_text: str, styles: dict, fonts: dict) -> list:
             i += 1
             continue
 
-        # H1 — document title
+        # H1 - document title
         if stripped.startswith("# ") and not stripped.startswith("##"):
             text = _inline(stripped[2:])
             story.append(Paragraph(text, styles["h1"]))
@@ -139,7 +139,7 @@ def _build_story(md_text: str, styles: dict, fonts: dict) -> list:
             i += 1
             continue
 
-        # H2 — navy section bar
+        # H2, navy section bar
         if stripped.startswith("## ") and not stripped.startswith("###"):
             text = _inline(stripped[3:])
             story.append(Spacer(1, 8))
@@ -148,7 +148,7 @@ def _build_story(md_text: str, styles: dict, fonts: dict) -> list:
             i += 1
             continue
 
-        # H3 — bold navy subheader
+        # H3, bold navy subheader
         if stripped.startswith("### "):
             text = _inline(stripped[4:])
             story.append(Paragraph(text, styles["h3"]))

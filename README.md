@@ -11,17 +11,17 @@ Built for senior professionals who'd rather send 10 excellent applications than 
 
 Drop a job description PDF. The pipeline runs:
 
-1. **Parses the JD** — company, role, location, salary, ATS system, key requirements
-2. **Checks if the job is real** — Perplexity searches for ghost job signals before wasting your time
-3. **Scores the fit** — Claude evaluates the role against your target profile across 4 dimensions: identity alignment, scope/level, comp, and company tier. Returns STRONG FIT / STRETCH / HARD PASS
-4. **Generates a tailoring JSON** — Claude Sonnet writes role-specific resume modifications and a cover letter, then a 3-model council reviews and patches the output
-5. **Review gate** — you can inspect and edit the JSON before anything renders
-6. **Tailors your resume** — applies the JSON to your base DOCX, creates a named copy, runs ATS compatibility check
-7. **Generates the cover letter** — DOCX plus plain text for ATS paste boxes, word count enforced
-8. **People intel** — Claude researches the company and hiring team, writes LinkedIn outreach messages ready to copy-paste
-9. **Keyword gap report** — shows which JD terms are missing from your materials
-10. **Executive summary PDF** — comp data, JD overview, Workday skills, resume changes
-11. **Google Drive sync** — organizes everything into company-specific folders (optional)
+1. **Parses the JD** - company, role, location, salary, ATS system, key requirements
+2. **Checks if the job is real** - Perplexity searches for ghost job signals before wasting your time
+3. **Scores the fit** - Claude evaluates the role against your target profile across 4 dimensions: identity alignment, scope/level, comp, and company tier. Returns STRONG FIT / STRETCH / HARD PASS
+4. **Generates a tailoring JSON** - Claude Sonnet writes role-specific resume modifications and a cover letter, then a 3-model council reviews and patches the output
+5. **Review gate** - you can inspect and edit the JSON before anything renders
+6. **Tailors your resume** - applies the JSON to your base DOCX, creates a named copy, runs ATS compatibility check
+7. **Generates the cover letter** - DOCX plus plain text for ATS paste boxes, word count enforced
+8. **People intel** - Claude researches the company and hiring team, writes LinkedIn outreach messages ready to copy-paste
+9. **Keyword gap report** - shows which JD terms are missing from your materials
+10. **Executive summary PDF** - comp data, JD overview, Workday skills, resume changes
+11. **Google Drive sync** - organizes everything into company-specific folders (optional)
 
 ---
 
@@ -29,17 +29,17 @@ Drop a job description PDF. The pipeline runs:
 
 - Python 3.11+
 - Your resume as a `.docx` file
-- **At least one LLM** — paid or free (see options below)
+- **At least one LLM** - paid or free (see options below)
 
-**You do not need Anthropic or Perplexity.** FORGE runs fully open-source at zero cost. Paid APIs give you higher quality output — but every feature has a free alternative that kicks in automatically when a key is absent.
+**You do not need Anthropic or Perplexity.** FORGE runs fully open-source at zero cost. Paid APIs give you higher quality output - but every feature has a free alternative that kicks in automatically when a key is absent.
 
 | Mode | What you need | Cost |
 |---|---|---|
 | **Full cloud** | `ANTHROPIC_API_KEY` + `PERPLEXITY_API_KEY` | ~$5-15/month depending on volume |
-| **Hybrid** | `ANTHROPIC_API_KEY` only | ~$3-8/month — OSS handles research |
-| **Full OSS** | A free `GROQ_API_KEY` (or Ollama installed locally) | $0 — no credit card ever |
+| **Hybrid** | `ANTHROPIC_API_KEY` only | ~$3-8/month - OSS handles research |
+| **Full OSS** | A free `GROQ_API_KEY` (or Ollama installed locally) | $0 - no credit card ever |
 
-Get a free Groq key at [console.groq.com](https://console.groq.com) — no credit card, 1,000 requests/day, takes 2 minutes.
+Get a free Groq key at [console.groq.com](https://console.groq.com) - no credit card, 1,000 requests/day, takes 2 minutes.
 
 ---
 
@@ -69,40 +69,40 @@ cp .env.template .env
 Open `.env`. Fill in **at least one** of the following:
 
 ```bash
-# Option A — free, no credit card (recommended starting point)
+# Option A - free, no credit card (recommended starting point)
 GROQ_API_KEY=gsk_...          # free at console.groq.com
 
-# Option B — paid, best quality
+# Option B - paid, best quality
 ANTHROPIC_API_KEY=sk-ant-...  # console.anthropic.com
 
-# Option C — fully offline, no account needed
+# Option C - fully offline, no account needed
 # Install Ollama from ollama.com, then: ollama pull llama3.1:8b
-# No key needed — FORGE detects it automatically
+# No key needed - FORGE detects it automatically
 ```
 
 See `.env.template` for the full list of optional keys and what each one unlocks.
 
 ### 3. Configure your profile
 
-Open `config/config.yaml`. This is the main file — everything about you and your search lives here.
+Open `config/config.yaml`. This is the main file - everything about you and your search lives here.
 
 Work through each section top to bottom:
 
-**`person`** — your name, email, phone, LinkedIn, resume filename
+**`person`** - your name, email, phone, LinkedIn, resume filename
 
-**`career_history`** — your roles, most-recent first. The `id` field becomes the identifier in the tailoring JSON. The `anchor_text` must match text in your DOCX so the script can find the right section to modify. See `assets/README.md` for details.
+**`career_history`** - your roles, most-recent first. The `id` field becomes the identifier in the tailoring JSON. The `anchor_text` must match text in your DOCX so the script can find the right section to modify. See `assets/README.md` for details.
 
-**`identity`** — how you want to be positioned. `primary` is what Claude leads with in every headline and bullet. `avoid_leading_with` is what gets buried.
+**`identity`** - how you want to be positioned. `primary` is what Claude leads with in every headline and bullet. `avoid_leading_with` is what gets buried.
 
-**`key_achievements`** — 2-4 specific proof points with dollar amounts and scale. These anchor the resume summary and fit scoring. Be specific.
+**`key_achievements`** - 2-4 specific proof points with dollar amounts and scale. These anchor the resume summary and fit scoring. Be specific.
 
-**`target_companies`** — tiered list of your target companies. Tier 1 = dream operators, Tier 2 = tech-adjacent, Tier 3 = consulting bridge. Used by the fit assessor and discovery scorer.
+**`target_companies`** - tiered list of your target companies. Tier 1 = dream operators, Tier 2 = tech-adjacent, Tier 3 = consulting bridge. Used by the fit assessor and discovery scorer.
 
-**`comp_floors`** — your compensation floors. `hard_filter_floor` triggers an auto-HARD PASS if a JD explicitly posts below that number.
+**`comp_floors`** - your compensation floors. `hard_filter_floor` triggers an auto-HARD PASS if a JD explicitly posts below that number.
 
-**`user_skills`** — your skill set, lowercase, Workday-compatible terms. Used for Workday skills recommendations in the exec summary.
+**`user_skills`** - your skill set, lowercase, Workday-compatible terms. Used for Workday skills recommendations in the exec summary.
 
-**`discovery`** — target titles, search cities, and email alert config if you want the discovery pipeline.
+**`discovery`** - target titles, search cities, and email alert config if you want the discovery pipeline.
 
 ### 4. Add your base resume
 
@@ -131,7 +131,7 @@ python run.py path/to/jd.pdf
 # Override parsed company/role if the parser gets it wrong
 python run.py path/to/jd.pdf --company "Acme Corp" --role "Director of Operations"
 
-# Add insider context (overrides JD framing — useful when the title undersells the role)
+# Add insider context (overrides JD framing - useful when the title undersells the role)
 python run.py path/to/jd.pdf --context "OVERRIDE: This role actually owns the full P&L..."
 ```
 
@@ -171,7 +171,7 @@ python run.py --negotiate "Acme Corp" "Director of Operations" --offer-amount "$
 # Run job discovery scrapers and send a weekly digest email
 python run.py --discover
 
-# Gmail alerts only — lightweight, good for cron or launchd
+# Gmail alerts only - lightweight, good for cron or launchd
 python run.py --email-check
 
 # Mark applications older than 30 days with no response as ghosted
@@ -213,7 +213,7 @@ If you want outputs automatically organized in GDrive:
 2. Create a project and enable the Drive API
 3. Create OAuth 2.0 credentials (Desktop app type), download the JSON
 4. Save it as `config/credentials.json`
-5. Run the pipeline once — it'll open a browser for authorization
+5. Run the pipeline once - it'll open a browser for authorization
 6. Set `gdrive.enabled: true` and `pipeline.gdrive_sync: true` in config
 
 First-time auth creates `config/token.json`. Both files are gitignored.
@@ -252,7 +252,7 @@ FORGE detects which API keys are present and automatically routes to the best av
 | No `PERPLEXITY_API_KEY` | Ghost job check via `ddgs` + Google News RSS + Wayback CDX; salary intel via BLS OES + H-1B LCA data; council review via Groq + Gemini + Ollama panel |
 | No `SERPAPI_API_KEY` | Job discovery via `python-jobspy` (Indeed, ZipRecruiter, Google) + direct ATS APIs (Greenhouse, Lever, Ashby) |
 
-The switch is automatic — just leave the key unset.
+The switch is automatic - just leave the key unset.
 
 ### OSS Mode Quick Start
 
@@ -280,7 +280,7 @@ python run.py path/to/jd.pdf
 
 **Discovery without SerpApi:**
 ```bash
-# JobSpy scrapes Indeed, ZipRecruiter, Google Jobs — no key needed
+# JobSpy scrapes Indeed, ZipRecruiter, Google Jobs - no key needed
 # Add ATS boards for direct company career page access
 pip install python-jobspy
 
@@ -294,18 +294,18 @@ python run.py --discover
 
 | | Cloud (Perplexity) | OSS (ddgs + feedparser + Wayback CDX) |
 |---|---|---|
-| **Quality** | Excellent — live web reasoning | Good — raw signals without synthesis |
+| **Quality** | Excellent - live web reasoning | Good - raw signals without synthesis |
 | **What you get** | AI-structured risk verdict with sourced evidence | Layoff headlines + posting age check |
 | **What you miss** | Nothing significant | No narrative summary of signals |
 | **Cost** | ~$0.01/check | Free |
-| **Reliability** | High | Good — depends on news availability |
+| **Reliability** | High | Good - depends on news availability |
 | **Gotcha** | Requires PERPLEXITY_API_KEY | `ddgs` can 429 at high volume; add sleep |
 
 #### Salary Intelligence
 
 | | Cloud (Perplexity) | OSS (BLS OES + H-1B LCA) |
 |---|---|---|
-| **Quality** | Good — live Glassdoor/Levels.fyi data | Good for filed roles; weak where H-1B absent |
+| **Quality** | Good - live Glassdoor/Levels.fyi data | Good for filed roles; weak where H-1B absent |
 | **What you get** | Real-time market range with source citations | BLS national median + actual employer filings |
 | **What you miss** | Nothing for most roles | Non-H-1B roles (domestic-only hires) get BLS only |
 | **Best for** | Any role at any company | Supply chain / ops at large employers who file H-1B |
@@ -322,28 +322,28 @@ To get the most out of OSS salary intel, download the H-1B LCA disclosure file:
 
 | | Cloud (Perplexity + Claude) | OSS (edgartools + ddgs + Wikipedia + OSS LLM) |
 |---|---|---|
-| **Quality** | Excellent — synthesized research + outreach messages | Fair-Good — structured data, LLM writes messages |
+| **Quality** | Excellent - synthesized research + outreach messages | Fair-Good - structured data, LLM writes messages |
 | **What you get** | Named contacts, earnings call quotes, ready-to-send outreach | SEC executive names, LinkedIn URLs, company context, LLM-written outreach |
 | **What you miss** | Nothing | Live web synthesis; mid-level hiring manager names harder to find |
 | **Best for** | Any company | F500 public companies (rich SEC data) |
 | **Gotcha** | Costs API credits per application | `linkedin-api` has ban risk at high volume; SEC data covers VP+ only |
 
 **Optional enhancers for OSS people intel:**
-- **Hunter.io free tier** (25 lookups/month) — add `HUNTER_API_KEY` to `.env` and set `oss.hunter_api_key` in config to find email formats
-- **linkedin-api** — `pip install linkedin-api` — requires a LinkedIn account credential, works at low volume (1-2 lookups/day)
+- **Hunter.io free tier** (25 lookups/month) - add `HUNTER_API_KEY` to `.env` and set `oss.hunter_api_key` in config to find email formats
+- **linkedin-api** - `pip install linkedin-api` - requires a LinkedIn account credential, works at low volume (1-2 lookups/day)
 
 #### Model Council
 
 | | Cloud (Perplexity sonar panel) | OSS (Groq + Gemini + Ollama) |
 |---|---|---|
-| **Quality** | Excellent | Excellent — genuine model family diversity |
+| **Quality** | Excellent | Excellent - genuine model family diversity |
 | **What you get** | 3 Perplexity models + aggregator | Llama 70B + Gemini Flash + Mistral 7B + aggregator |
 | **Model diversity** | Same provider, different sizes | Different architectures (Meta / Google / Mistral) |
 | **Speed** | Fast | Fast (Groq is 300-500 tok/s) |
-| **Cost** | ~$0.02/council run | Free — Groq (1K req/day) + Gemini (250 req/day) + Ollama (unlimited) |
+| **Cost** | ~$0.02/council run | Free - Groq (1K req/day) + Gemini (250 req/day) + Ollama (unlimited) |
 | **Gotcha** | Requires PERPLEXITY_API_KEY | Need at least one provider configured |
 
-This is the strongest OSS replacement — genuinely different model families provide better diversity than same-provider size variants.
+This is the strongest OSS replacement - genuinely different model families provide better diversity than same-provider size variants.
 
 #### Discovery Scraping
 
@@ -352,16 +352,16 @@ This is the strongest OSS replacement — genuinely different model families pro
 | **Quality** | Good-Excellent | Good |
 | **Boards covered** | Indeed, LinkedIn, Google, Glassdoor | Indeed, ZipRecruiter, Google (jobspy) + Greenhouse/Lever/Ashby (ATS direct) |
 | **LinkedIn** | Reliable | Rate-limited; proxies needed for high volume |
-| **Glassdoor** | Fair | Poor — heavily bot-protected |
-| **ATS direct** | Not applicable | Excellent for Greenhouse/Lever/Ashby companies — zero rate limits |
+| **Glassdoor** | Fair | Poor - heavily bot-protected |
+| **ATS direct** | Not applicable | Excellent for Greenhouse/Lever/Ashby companies - zero rate limits |
 | **Cost** | Paid per search | Free |
 | **Gotcha** | $50/month for meaningful volume | JobSpy can hit LinkedIn rate limits; add proxy config for high volume |
 
-Direct ATS APIs (Greenhouse, Lever, Ashby) are the hidden gem here — no rate limits, no bot protection, and many tech companies use them. Configure `oss.ats_boards` in `config/config.yaml` for your specific target companies.
+Direct ATS APIs (Greenhouse, Lever, Ashby) are the hidden gem here - no rate limits, no bot protection, and many tech companies use them. Configure `oss.ats_boards` in `config/config.yaml` for your specific target companies.
 
 ### What stays the same in OSS mode
 
-These features don't touch any paid API — they work identically regardless of mode:
+These features don't touch any paid API - they work identically regardless of mode:
 
 - JD parsing and text extraction (pdfplumber)
 - Resume DOCX modification (python-docx)
@@ -376,12 +376,12 @@ These features don't touch any paid API — they work identically regardless of 
 
 | Feature | OSS quality vs. cloud |
 |---|---|
-| Ghost job check | ~80% — signals without synthesis |
-| Salary intel | ~75% — good for H-1B-heavy roles, weaker for domestic-only |
-| People intel | ~55% — structured data good, narrative synthesis limited |
-| Model council | ~90% — different architecture families, genuinely comparable |
-| Discovery scraping | ~85% — slight LinkedIn gap vs. SerpApi |
-| Resume/cover letter generation | ~80% — quality gap narrows with Llama 70B or Gemini |
+| Ghost job check | ~80% - signals without synthesis |
+| Salary intel | ~75% - good for H-1B-heavy roles, weaker for domestic-only |
+| People intel | ~55% - structured data good, narrative synthesis limited |
+| Model council | ~90% - different architecture families, genuinely comparable |
+| Discovery scraping | ~85% - slight LinkedIn gap vs. SerpApi |
+| Resume/cover letter generation | ~80% - quality gap narrows with Llama 70B or Gemini |
 
 ---
 
@@ -392,7 +392,7 @@ outputs/
 └── 2026-01-15_acme_corp_director_of_operations/
     ├── jd/                  original JD PDF
     ├── research/            fit assessment, salary intel, gap report, council review PDF
-    ├── tailoring_json/      the Claude-generated tailoring JSON (key artifact — edit this)
+    ├── tailoring_json/      the Claude-generated tailoring JSON (key artifact - edit this)
     ├── resume/              tailored resume DOCX
     ├── cover_letter/        cover letter DOCX + plain text version
     ├── people_intel/        hiring manager intel PDF + outreach messages
@@ -416,7 +416,7 @@ The ATS report in `research/` shows what's causing the deduction. Common culprit
 Check that your `discovery.target_titles` match real job board titles exactly, and that `SERPAPI_API_KEY` is set.
 
 **Google Drive auth loop**
-Delete `config/token.json` and re-run — it'll trigger a fresh OAuth flow.
+Delete `config/token.json` and re-run - it'll trigger a fresh OAuth flow.
 
 **Council review errors**
 The council needs Perplexity. Check `PERPLEXITY_API_KEY` in `.env`. You can disable it with `tailoring.council_enabled: false` in config.
@@ -425,13 +425,13 @@ The council needs Perplexity. Check `PERPLEXITY_API_KEY` in `.env`. You can disa
 
 ## Tech stack
 
-- Claude Sonnet (Anthropic) — tailoring JSON, cover letter, people intel, fit assessment
-- Perplexity sonar-pro — ghost job detection, salary research, council review
-- pdfplumber — JD text extraction
-- python-docx — resume DOCX manipulation
-- ReportLab — PDF generation (people intel, exec summary)
-- SerpApi — job board scraping (optional)
-- Google Drive API — output sync (optional)
+- Claude Sonnet (Anthropic) - tailoring JSON, cover letter, people intel, fit assessment
+- Perplexity sonar-pro - ghost job detection, salary research, council review
+- pdfplumber - JD text extraction
+- python-docx - resume DOCX manipulation
+- ReportLab - PDF generation (people intel, exec summary)
+- SerpApi - job board scraping (optional)
+- Google Drive API - output sync (optional)
 
 ---
 
@@ -441,11 +441,11 @@ The job market has a trust problem on both sides. Candidates spray AI-generated 
 
 The edge is being the obvious non-game-player. Every feature here enforces quality over volume:
 
-- Fit assessor runs before API credits are spent — no materials generated for hard passes
+- Fit assessor runs before API credits are spent - no materials generated for hard passes
 - Ghost job detection runs before the fit assessor
 - The 3-model council catches fabrication and AI-tell language before it hits your resume
 - The review gate lets you see and edit the tailoring JSON before anything renders
-- 150-word cover letter max — signals confidence, not desperation
+- 150-word cover letter max - signals confidence, not desperation
 
 ---
 

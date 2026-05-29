@@ -52,7 +52,7 @@ class DocxModifier:
             self._apply_technical_skills()
         logger.info("DocxModifier: apply_all complete.")
 
-    # ── Paragraph utilities ──────────────────────────────────────────────────
+    # Paragraph utilities
 
     def _find_paragraph_by_text(self, search_text: str, exact: bool = False) -> Optional[int]:
         target = search_text.upper()
@@ -74,7 +74,7 @@ class DocxModifier:
         else:
             paragraph.add_run(new_text)
 
-    # ── Section appliers ─────────────────────────────────────────────────────
+    # Section appliers
 
     def _apply_headline(self) -> None:
         new_headline = self.t["headline"]
@@ -192,7 +192,7 @@ class DocxModifier:
             self._set_paragraph_text(self.paragraphs[comp_start], " • ".join(comps))
             logger.info("  Comp count mismatch; wrote single line.")
 
-    # ── Experience ───────────────────────────────────────────────────────────
+    # Experience
 
     def _find_role_header_index(self, role_id: str) -> Optional[int]:
         anchor = self.ROLE_ANCHORS.get(role_id)

@@ -1,7 +1,7 @@
-"""Perplexity Sonar API client — live company and market intelligence.
+"""Perplexity Sonar API client - live company and market intelligence.
 
 Uses PERPLEXITY_API_KEY from .env. Returns empty string gracefully if
-the key is missing or the request fails — the pipeline continues without it.
+the key is missing or the request fails - the pipeline continues without it.
 """
 
 from __future__ import annotations

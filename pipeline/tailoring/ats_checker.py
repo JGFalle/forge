@@ -31,7 +31,7 @@ def check(doc_path: Path) -> dict:
     body = doc.element.body
     findings = []
 
-    # 1. Tables — layout tables cause ATS parsers to skip or scramble content
+    # 1. Tables: layout tables cause ATS parsers to skip or scramble content
     table_count = len(doc.tables)
     if table_count > 0:
         findings.append({
@@ -45,7 +45,7 @@ def check(doc_path: Path) -> dict:
             "fix": "Reformat using tab stops or plain paragraphs instead of tables.",
         })
 
-    # 2. Text boxes — w:txbxContent is invisible to most ATS
+    # 2. Text boxes: w:txbxContent is invisible to most ATS
     text_boxes = body.findall(f".//{qn('w:txbxContent')}")
     if text_boxes:
         findings.append({
@@ -75,7 +75,7 @@ def check(doc_path: Path) -> dict:
             "fix": "Remove decorative images. Replace icon bullets with Unicode characters in body text.",
         })
 
-    # 4. Header content — ATS often skips headers/footers entirely
+    # 4. Header content. ATS often skips headers/footers entirely
     has_header_content = False
     has_footer_content = False
     for section in doc.sections:
@@ -137,7 +137,7 @@ def check(doc_path: Path) -> dict:
         except Exception:
             pass
 
-    # 6. Track changes — unaccepted changes leave ghost text that confuses parsers
+    # 6. Track changes: unaccepted changes leave ghost text that confuses parsers
     insertions = body.findall(f".//{qn('w:ins')}")
     deletions = body.findall(f".//{qn('w:del')}")
     if insertions or deletions:
@@ -152,7 +152,7 @@ def check(doc_path: Path) -> dict:
             "fix": "Accept all changes before saving: Review > Accept All Changes.",
         })
 
-    # 7. Hyperlinks — flag if excessive (LinkedIn/email are expected, lots of URLs are noise)
+    # 7. Hyperlinks: flag if excessive (LinkedIn/email are expected, lots of URLs are noise)
     hyperlinks = body.findall(f".//{qn('w:hyperlink')}")
     if len(hyperlinks) > 6:
         findings.append({

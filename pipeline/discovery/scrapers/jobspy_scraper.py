@@ -38,7 +38,7 @@ def scrape() -> list[dict]:
         logger.warning("JobSpy scraper: no target_titles configured in config.yaml")
         return []
 
-    # Boards to scrape — skip LinkedIn by default (aggressive rate limits without proxy)
+    # Boards to scrape - skip LinkedIn by default (aggressive rate limits without proxy)
     boards = ["indeed", "zip_recruiter", "google"]
     logger.info("JobSpy: scraping %s", boards)
 

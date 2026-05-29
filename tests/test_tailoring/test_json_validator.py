@@ -31,7 +31,7 @@ def _full() -> dict:
     }
 
 
-# ── Should pass ───────────────────────────────────────────────────────────────
+# Should pass
 
 def test_minimal_valid():
     validate_json(_minimal())  # should not raise
@@ -53,7 +53,7 @@ def test_competencies_exactly_four():
     validate_json(data)
 
 
-# ── Should fail ───────────────────────────────────────────────────────────────
+# Should fail
 
 def test_missing_filename_fails(capsys):
     with pytest.raises(SystemExit):
@@ -62,7 +62,7 @@ def test_missing_filename_fails(capsys):
 
 def test_competencies_wrong_count_fails(capsys):
     data = _full()
-    data["competencies"] = ["A", "B", "C"]  # only 3 — minItems is 4
+    data["competencies"] = ["A", "B", "C"]  # only 3, minItems is 4
     with pytest.raises(SystemExit):
         validate_json(data)
 
@@ -88,7 +88,7 @@ def test_technical_skills_too_many_fails(capsys):
         validate_json(data)
 
 
-# ── check_schema (non-exit version for retry loop) ───────────────────────────
+# check_schema (non-exit version for retry loop)
 
 def test_check_schema_valid_returns_none():
     assert check_schema(_full()) is None

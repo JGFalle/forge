@@ -1,8 +1,8 @@
 """Open-source salary intelligence.
 
 Two data sources, no paid API:
-  1. BLS OES public API  — national median/mean wage by occupation (SOC code)
-  2. DOL H-1B LCA data   — actual filed wages at named employers (optional, requires download)
+  1. BLS OES public API : national median/mean wage by occupation (SOC code)
+  2. DOL H-1B LCA data   - actual filed wages at named employers (optional, requires download)
 
 The H-1B dataset is the stronger signal when the role is commonly filed.
 BLS OES is the reliable fallback for everything else.
@@ -248,7 +248,7 @@ def _build_h1b_cache(con: sqlite3.Connection, csv_file: Path) -> None:
     """)
     con.execute("CREATE INDEX IF NOT EXISTS idx_employer ON lca (LOWER(employer_name))")
 
-    # Column names vary by year — try common variants
+    # Column names vary by year, try common variants
     COL_EMPLOYER = ("EMPLOYER_NAME", "EMPLOYER NAME", "LEGALNAME")
     COL_TITLE    = ("JOB_TITLE", "SOC_TITLE", "JOB TITLE", "POSITION_TITLE")
     COL_WAGE     = ("WAGE_RATE_OF_PAY_FROM", "WAGE_OFFERED_FROM", "WAGE_RATE_FROM", "PREVAILING_WAGE")

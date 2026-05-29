@@ -1,4 +1,4 @@
-"""Job viability assessment — runs before fit assessment and API calls.
+"""Job viability assessment, runs before fit assessment and API calls.
 
 Checks for ghost job signals and posting freshness using Perplexity for live
 research and Claude haiku to structure the findings. Both gates (viability +
@@ -107,7 +107,7 @@ def display(result: dict) -> None:
 
 
 def should_block(result: dict) -> bool:
-    """Return True if ghost_risk is high — pipeline should pause for user confirmation."""
+    """Return True if ghost_risk is high, pipeline should pause for user confirmation."""
     if result.get("skipped"):
         return False
     return result.get("ghost_risk") == "high"

@@ -5,7 +5,7 @@ Aggregator: sonar-reasoning receives the JD + original draft + panel findings,
             then applies ONLY the specific fixes the panel identified.
             It is a surgical editor, not a rewriter.
 
-Design principle: the council enhances JD alignment — it does not replace
+Design principle: the council enhances JD alignment: it does not replace
 the Claude-generated content. Every word not flagged by the panel stays as-is.
 """
 
@@ -124,7 +124,7 @@ def _sanitize(text: str) -> str:
     text = re.sub(r'\s,', ',', text)
     text = re.sub(r'([.!?,;:])\s*([.!?,;:])', r'\1', text)
 
-    # Deduplicate dollar figures — keep first mention, drop any sentence reusing the same figure
+    # Deduplicate dollar figures, keep first mention, drop any sentence reusing the same figure
     seen: set[str] = set()
     sentences = re.split(r'(?<=[.!?])\s+', text)
     kept: list[str] = []
@@ -137,7 +137,7 @@ def _sanitize(text: str) -> str:
         kept.append(sentence)
     text = ' '.join(kept)
 
-    # Cap years-of-experience — hard max 10+ years (career start Dec 2015)
+    # Cap years-of-experience, hard max 10+ years (career start Dec 2015)
     text = re.sub(r'\b1[1-9]\+?\s*year', '10+ year', text, flags=re.IGNORECASE)
     text = re.sub(r'\b[2-9]\d\+?\s*year', '10+ year', text, flags=re.IGNORECASE)
 
@@ -251,7 +251,7 @@ def run_council(
     _, agg_raw = _query_model(client, AGGREGATOR_MODEL, agg_prompt, max_tokens=1200)
     agg = _parse_json(agg_raw)
 
-    # Sanitize — deterministic backstop regardless of model output
+    # Sanitize, deterministic backstop regardless of model output
     if "final_summary" in agg:
         agg["final_summary"] = _sanitize(agg["final_summary"])
     if "final_cover_letter" in agg:

@@ -5,7 +5,7 @@ job listings from LinkedIn, Indeed, and Google for Jobs alert emails.
 Marks messages as read after extraction so they aren't re-processed.
 
 Required env vars:
-  GMAIL_APP_PASSWORD — same app password used by digest.py
+  GMAIL_APP_PASSWORD: same app password used by digest.py
 
 Gmail setup (one-time):
   1. Create label "FORGE/Alerts" in Gmail (or match whatever alert_email_label is set to in config)
@@ -37,7 +37,7 @@ _INDEED_SENDERS   = ("alert@indeed.com", "jobalerts@indeed.com")
 _GOOGLE_SENDERS   = ("jobs-noreply@google.com",)
 
 
-# ── Public API ─────────────────────────────────────────────────────────────────
+# Public API
 
 def scrape() -> list[dict]:
     """Connect to Gmail, read unread alert emails, return extracted jobs."""
@@ -94,7 +94,7 @@ def scrape() -> list[dict]:
     return jobs
 
 
-# ── Message processing ─────────────────────────────────────────────────────────
+# Message processing
 
 def _process_message(mail: imaplib.IMAP4_SSL, msg_id: bytes) -> list[dict]:
     """Fetch, parse, and mark as read a single alert email."""
@@ -120,11 +120,11 @@ def _process_message(mail: imaplib.IMAP4_SSL, msg_id: bytes) -> list[dict]:
     elif any(s in sender for s in _GOOGLE_SENDERS):
         jobs = _parse_google_alert(html_body)
     else:
-        # Unknown sender — attempt generic extraction
+        # Unknown sender, attempt generic extraction
         logger.debug("Unknown alert sender: %s — attempting generic parse", sender)
         jobs = _parse_generic_alert(html_body, sender)
 
-    # Mark as read (removes \Seen flag absence — standard IMAP flag)
+    # Mark as read (removes \Seen flag absence, standard IMAP flag)
     mail.store(msg_id, "+FLAGS", "\\Seen")
 
     return jobs
@@ -159,7 +159,7 @@ def _extract_html(msg: email.message.Message) -> str:
     return ""
 
 
-# ── LinkedIn alert parser ──────────────────────────────────────────────────────
+# LinkedIn alert parser
 
 def _parse_linkedin_alert(html: str) -> list[dict]:
     """
@@ -174,7 +174,7 @@ def _parse_linkedin_alert(html: str) -> list[dict]:
     """
     jobs: list[dict] = []
 
-    # Extract job view links — these carry the job ID
+    # Extract job view links, these carry the job ID
     url_pattern = re.compile(
         r'href="(https://www\.linkedin\.com/(?:comm/)?jobs/view/(\d+)[^"]*)"',
         re.IGNORECASE,
@@ -266,7 +266,7 @@ class _LinkedInAlertParser(HTMLParser):
         self._capture = None
 
 
-# ── Indeed alert parser ────────────────────────────────────────────────────────
+# Indeed alert parser
 
 def _parse_indeed_alert(html: str) -> list[dict]:
     """
@@ -334,7 +334,7 @@ class _IndeedAlertParser(HTMLParser):
         self._capture = None
 
 
-# ── Google for Jobs alert parser ───────────────────────────────────────────────
+# Google for Jobs alert parser
 
 def _parse_google_alert(html: str) -> list[dict]:
     """
@@ -406,10 +406,10 @@ class _GoogleAlertParser(HTMLParser):
         self._capture = None
 
 
-# ── Generic fallback parser ────────────────────────────────────────────────────
+# Generic fallback parser
 
 def _parse_generic_alert(html: str, sender: str) -> list[dict]:
-    """Last-resort parser for unrecognized alert senders — extracts any job-URL anchors."""
+    """Last-resort parser for unrecognized alert senders - extracts any job-URL anchors."""
     jobs: list[dict] = []
     job_url_pattern = re.compile(
         r'href="(https?://[^"]*(?:jobs|careers|viewjob|job-view)[^"]*)"[^>]*>([^<]{5,120})<',
@@ -429,7 +429,7 @@ def _parse_generic_alert(html: str, sender: str) -> list[dict]:
     return jobs
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# Helpers
 
 def _clean_tracking_url(url: str) -> str:
     """Strip common email tracking redirects to get the canonical job URL."""

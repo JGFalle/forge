@@ -1,4 +1,4 @@
-"""Workday CXS API scraper — hits Tier 1 company career sites directly.
+"""Workday CXS API scraper, hits Tier 1 company career sites directly.
 
 No anti-bot. Clean structured JSON from source. Each company has its own
 Workday tenant slug configured in config.yaml under discovery.workday_tenants.

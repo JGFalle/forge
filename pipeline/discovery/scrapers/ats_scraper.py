@@ -1,4 +1,4 @@
-"""Direct ATS API scraper — Greenhouse, Lever, Ashby, Workable.
+"""Direct ATS API scraper - Greenhouse, Lever, Ashby, Workable.
 
 All of these expose fully public, unauthenticated job listing endpoints.
 No API key. No rate limits worth worrying about at personal-pipeline volume.

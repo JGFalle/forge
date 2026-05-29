@@ -1,4 +1,4 @@
-"""Interview prep generator — produces a structured pre-interview briefing via Claude API.
+"""Interview prep generator - produces a structured pre-interview briefing via Claude API.
 
 Takes the tailoring JSON + people intel markdown (if available) and generates
 a complete interview brief: company intelligence, role alignment, STAR story bank,

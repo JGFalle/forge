@@ -68,7 +68,7 @@ def load_json(path: str | Path) -> dict:
 
 
 def check_schema(data: dict) -> str | None:
-    # Returns error string or None if valid — safe for retry loops
+    # Returns error string or None if valid - safe for retry loops
     try:
         jsonschema.validate(instance=data, schema=_build_schema())
         return None

@@ -1,11 +1,11 @@
 """LanguageTool grammar and punctuation check.
 
-Free public API at https://api.languagetool.org — no key required for basic use.
+Free public API at https://api.languagetool.org: no key required for basic use.
 Set LANGUAGETOOL_API_KEY in .env for premium access and higher rate limits.
 
 Design:
 - Auto-fix: mechanical punctuation/spacing errors only (high confidence, no meaning change)
-- Flag: everything else — grammar, style, word choice — shown in reports, not silently applied
+- Flag: everything else - grammar, style, word choice - shown in reports, not silently applied
 - Skip: rules that conflict with resume conventions (ALL-CAPS acronyms, bullet verb starts)
 """
 
@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 LT_ENDPOINT = "https://api.languagetool.org/v2/check"
 LT_TIMEOUT = 12
 
-# Only these categories get auto-applied — mechanical errors with no meaning risk
+# Only these categories get auto-applied, mechanical errors with no meaning risk
 _AUTO_FIX_CATEGORIES = {"PUNCTUATION", "TYPOGRAPHY", "TYPOS"}
 
 # Rule IDs to never auto-apply even in allowed categories

@@ -27,7 +27,7 @@ def _cl_filename() -> str:
 
 
 def run_txt(tailoring_json_path: Path, output_dir: Path) -> Path:
-    """Plain text version — for pasting into ATS text boxes."""
+    """Plain text version: for pasting into ATS text boxes."""
     with open(tailoring_json_path, encoding="utf-8") as f:
         data = json.load(f)
     body = strip_em_dashes(data.get("cover_letter", "").strip())

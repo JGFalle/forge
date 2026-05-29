@@ -17,7 +17,7 @@ _EXCLUDE_TITLE_PATTERNS = [
     r"\bcoordinator\b",
     r"\bspecialist\b",
     r"\bassistant\b",
-    r"\bassociate\b",              # includes Associate Director — below target level
+    r"\bassociate\b",              # includes Associate Director, below target level
     r"\bvp\b",
     r"\bvice president\b",
     r"\bpresident\b(?!.*vice)",
@@ -29,7 +29,7 @@ _EXCLUDE_TITLE_PATTERNS = [
     r"\bcontract\b(?!.*director)",
     r"\btemporary\b",
     r"\bstaffing\b",
-    # Healthcare/clinical — "operations" in title doesn't make these relevant
+    # Healthcare/clinical: "operations" in title doesn't make these relevant
     r"\bclinical\b",
     r"\bnursing\b",
     r"\bmedical\b(?!.*device)",    # allow Medical Device (supply chain context)
@@ -66,7 +66,7 @@ _DIRECTOR_PATTERN = re.compile(
 )
 
 # Title must contain at least one of these to indicate ops/supply chain domain.
-# This is the primary noise filter — cuts healthcare, sales, creative, etc. that
+# This is the primary noise filter - cuts healthcare, sales, creative, etc. that
 # happen to have "Director" in the title.
 _DOMAIN_PATTERN = re.compile(
     r"\b(operations|supply chain|logistics|network|automation|"

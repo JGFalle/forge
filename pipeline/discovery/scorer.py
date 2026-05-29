@@ -1,4 +1,4 @@
-"""Match scoring for discovery jobs — ranks each posting against the user's target profile.
+"""Match scoring for discovery jobs, ranks each posting against the user's target profile.
 
 Two-stage scoring:
 
@@ -115,7 +115,7 @@ def score_all(jobs: list[dict]) -> list[dict]:
     return sorted(jobs, key=lambda j: j["match_score"], reverse=True)
 
 
-# ── Component scorers ─────────────────────────────────────────────────────────
+# Component scorers
 
 def _title_score(title: str) -> int:
     pts = 5  # base
@@ -175,7 +175,7 @@ def _salary_bonus(salary: str) -> int:
     nums = re.findall(r"[\d]+(?:,[\d]+)*(?:\.\d+)?", salary.replace(",", ""))
     try:
         values = [float(n) for n in nums]
-        # K-suffix already converted by normalizer — look for 5+ digit numbers
+        # K-suffix already converted by normalizer, look for 5+ digit numbers
         annual = [v for v in values if v >= 10000]
         if not annual:
             # might be hourly
@@ -195,7 +195,7 @@ def _salary_bonus(salary: str) -> int:
     return 0
 
 
-# ── Deep score (Claude Haiku resume-vs-JD) ────────────────────────────────────
+# Deep score (Claude Haiku resume-vs-JD)
 
 _DEEP_SCORE_THRESHOLD = 40   # only run for jobs at or above this match_score
 _RESUME_TEXT: str | None = None  # cached once per process

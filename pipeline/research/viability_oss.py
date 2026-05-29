@@ -1,9 +1,9 @@
 """Open-source ghost job viability check.
 
 No paid API needed. Three signal sources chained together:
-  1. ddgs news search  — layoff / hiring freeze headlines with dates
-  2. Google News RSS   — feedparser for fresh structured results
-  3. Wayback CDX API   — first snapshot date of the job URL (posting age)
+  1. ddgs news search , layoff / hiring freeze headlines with dates
+  2. Google News RSS  - feedparser for fresh structured results
+  3. Wayback CDX API   - first snapshot date of the job URL (posting age)
 
 Returns the same dict shape as viability_checker.check() so the caller
 can drop this in as a transparent fallback.
@@ -35,13 +35,13 @@ def check(company: str, role: str, job_url: str = "") -> dict:
     positive: list[str] = []
     risk_score = 0  # 0-100; <30 low, 30-60 medium, >60 high
 
-    # ── Signal 1: layoff / freeze news ────────────────────────────────────────
+    # Signal 1: layoff / freeze news
     news_signals, news_positive, news_score = _check_news(company)
     signals.extend(news_signals)
     positive.extend(news_positive)
     risk_score += news_score
 
-    # ── Signal 2: posting age via Wayback CDX ─────────────────────────────────
+    # Signal 2: posting age via Wayback CDX
     if job_url:
         age_signal, age_score = _check_posting_age(job_url)
         if age_signal:
@@ -51,7 +51,7 @@ def check(company: str, role: str, job_url: str = "") -> dict:
                 positive.append(age_signal)
             risk_score += age_score
 
-    # ── Score → verdict ───────────────────────────────────────────────────────
+    # Score → verdict
     if risk_score >= 60:
         ghost_risk = "high"
         recommendation = "verify_before_applying"
@@ -152,7 +152,7 @@ def _check_news(company: str) -> tuple[list[str], list[str], int]:
 
 
 def _check_posting_age(job_url: str) -> tuple[str, int]:
-    """Check Wayback CDX for first snapshot of the job URL — reveals posting age."""
+    """Check Wayback CDX for first snapshot of the job URL - reveals posting age."""
     try:
         params = {
             "url": job_url,

@@ -1,4 +1,4 @@
-"""Discovery queue tracker — single source of truth CSV in Google Drive.
+"""Discovery queue tracker: single source of truth CSV in Google Drive.
 
 Schema (columns in order):
   job_id               md5 hash of (company_lower + title_normalized_lower + location_lower)
@@ -8,7 +8,7 @@ Schema (columns in order):
   location             city/state or Remote
   url                  direct link to job posting
   source               indeed | linkedin | workday | serpapi
-  salary_range         "$175K–$210K" or "" if unknown
+  salary_range         "$175K - $210K" or "" if unknown
   status               TBD | Queued | Applied | Passed
   date_status_changed  YYYY-MM-DD of last status change
   notes                free text

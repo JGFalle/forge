@@ -70,7 +70,7 @@ def _make_doc(
     return doc
 
 
-# ── Test with real DOCX ───────────────────────────────────────────────────────
+# Test with real DOCX
 
 def test_clean_resume_passes():
     """The actual base resume (if present) should score 100/100."""
@@ -84,7 +84,7 @@ def test_clean_resume_passes():
     assert result["findings"] == []
 
 
-# ── Unit tests via mocks ──────────────────────────────────────────────────────
+# Unit tests via mocks
 
 def test_table_detected():
     from pipeline.tailoring.ats_checker import check

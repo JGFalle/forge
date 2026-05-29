@@ -1,7 +1,7 @@
-"""Google for Jobs scraper via SerpApi — catches ATS-only postings not on Indeed/LinkedIn.
+"""Google for Jobs scraper via SerpApi, catches ATS-only postings not on Indeed/LinkedIn.
 
 Requires SERPAPI_KEY in .env.
-Sign up at serpapi.com — ~$50/month for the volume needed here.
+Sign up at serpapi.com, ~$50/month for the volume needed here.
 """
 
 from __future__ import annotations

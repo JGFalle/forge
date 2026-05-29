@@ -30,12 +30,12 @@ def extract(intel_md: str) -> list[dict]:
     Parse people intel markdown and return a list of outreach message dicts.
 
     Each dict:
-      name         — contact name (best-effort from surrounding markdown)
-      title        — contact title (best-effort)
-      message      — the raw message text
-      char_count   — len(message)
-      valid        — True if 290-300 chars (within target window)
-      warning      — non-empty string if outside target range
+      name         : contact name (best-effort from surrounding markdown)
+      title       : contact title (best-effort)
+      message     : the raw message text
+      char_count  : len(message)
+      valid       : True if 290-300 chars (within target window)
+      warning      : non-empty string if outside target range
     """
     messages = []
     seen = set()

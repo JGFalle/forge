@@ -1,4 +1,4 @@
-"""Keyword gap report — surface JD terms missing from the tailoring JSON.
+"""Keyword gap report: surface JD terms missing from the tailoring JSON.
 
 Extracts meaningful single words and 2-grams from the JD, then checks
 which ones appear anywhere in the tailored resume content. Reports

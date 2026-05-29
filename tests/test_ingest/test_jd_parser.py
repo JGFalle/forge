@@ -4,7 +4,7 @@ import pytest
 from pipeline.ingest.jd_parser import parse, _parse_date_string
 
 
-# ── Salary extraction ─────────────────────────────────────────────────────────
+# Salary extraction
 
 def test_salary_dollar_range():
     jd = parse("The base salary range is $175,000 - $210,000 annually.")
@@ -19,7 +19,7 @@ def test_salary_k_notation():
     assert jd.salary_range != ""
 
 
-# ── Req number extraction ─────────────────────────────────────────────────────
+# Req number extraction
 
 def test_req_number_job_id():
     jd = parse("Job ID: JR-94821 | Director of Operations")
@@ -34,7 +34,7 @@ def test_req_number_missing():
     assert jd.req_number == ""
 
 
-# ── ATS system detection ──────────────────────────────────────────────────────
+# ATS system detection
 
 def test_ats_workday():
     jd = parse("Apply at careers.myworkdayjobs.com/company/job/123")
@@ -49,7 +49,7 @@ def test_ats_none():
     assert jd.ats_system == ""
 
 
-# ── Remote detection ─────────────────────────────────────────────────────────
+# Remote detection
 
 def test_remote_detected():
     jd = parse("This is a hybrid role based in Atlanta, GA.")
@@ -60,7 +60,7 @@ def test_remote_not_detected():
     assert jd.remote_ok is False
 
 
-# ── Apply-by-date extraction ──────────────────────────────────────────────────
+# Apply-by-date extraction
 
 def test_apply_by_full_date():
     jd = parse("Applications close May 30, 2026.")
@@ -79,7 +79,7 @@ def test_apply_by_no_date():
     assert jd.apply_by_date == ""
 
 
-# ── _parse_date_string ────────────────────────────────────────────────────────
+# _parse_date_string
 
 def test_parse_date_full_month():
     assert _parse_date_string("June 15, 2026") == "2026-06-15"
@@ -100,7 +100,7 @@ def test_parse_date_invalid():
     assert _parse_date_string("next Tuesday") == ""
 
 
-# ── raw_text preserved ────────────────────────────────────────────────────────
+# raw_text preserved
 
 def test_raw_text_stored():
     text = "Director of Operations | Coca-Cola | Atlanta, GA"

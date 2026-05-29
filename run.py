@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Job Application Pipeline — single entry point.
+Job Application Pipeline, single entry point.
 
 Usage:
     python run.py <path-to-jd.pdf> [--company "Acme Corp"] [--role "Director of Ops"]
@@ -9,18 +9,18 @@ Usage:
     python run.py --tracker
     python run.py --prep "Company" "Role"
 
-Full pipeline (triggered by dropping a JD PDF) — fully automated:
-  1. ingest      — extract text from PDF, parse JD fields
-  2. assess      — fit scoring via Claude API (STRONG_FIT / STRETCH / HARD_PASS)
-  3. folder      — create application folder, write prompt files as reference
-  4. tailor      — generate tailoring JSON via Claude API
-  5. intel       — generate people intel via Claude API (+ Perplexity if key set)
-  6. resume      — apply tailoring JSON to base resume DOCX
-  7. cover       — generate cover letter DOCX
-  8. pdf         — render people intel markdown to PDF
-  9. gap         — keyword gap report vs. JD
-  10. gdrive     — sync application folder to Google Drive
-  11. track      — add entry to application_tracker.json
+Full pipeline (triggered by dropping a JD PDF): fully automated:
+  1. ingest      - extract text from PDF, parse JD fields
+  2. assess      - fit scoring via Claude API (STRONG_FIT / STRETCH / HARD_PASS)
+  3. folder     , create application folder, write prompt files as reference
+  4. tailor     , generate tailoring JSON via Claude API
+  5. intel      , generate people intel via Claude API (+ Perplexity if key set)
+  6. resume     : apply tailoring JSON to base resume DOCX
+  7. cover       - generate cover letter DOCX
+  8. pdf         - render people intel markdown to PDF
+  9. gap        , keyword gap report vs. JD
+  10. gdrive    , sync application folder to Google Drive
+  11. track     , add entry to application_tracker.json
 """
 
 from __future__ import annotations
@@ -141,7 +141,7 @@ def main() -> None:
     args = parse_args()
     logger.handlers[0].setLevel(10 if args.debug else 20)
 
-    # ── Status update ─────────────────────────────────────────────────────────
+    # Status update
     if args.status:
         from pipeline.tracker.tracker import update_status
         parts = args.status
@@ -159,7 +159,7 @@ def main() -> None:
             print(f"No entry found for: {company_arg}")
         return
 
-    # ── Contact logging ───────────────────────────────────────────────────────
+    # Contact logging
     if args.contact:
         from pipeline.tracker.tracker import add_contact
         parts = args.contact
@@ -179,7 +179,7 @@ def main() -> None:
         print(f"Contact logged: {parts[2]} for {parts[0]}")
         return
 
-    # ── Tracker / pipeline view ───────────────────────────────────────────────
+    # Tracker / pipeline view
     if args.tracker:
         import subprocess
         from pipeline.tracker.tracker import display_pipeline
@@ -190,7 +190,7 @@ def main() -> None:
         subprocess.run(["open", str(html_path)], check=False)
         return
 
-    # ── Stale cleanup ────────────────────────────────────────────────────────
+    # Stale cleanup
     if args.cleanup:
         from pipeline.tracker.tracker import cleanup_stale
         updated = cleanup_stale(days_threshold=30)
@@ -202,7 +202,7 @@ def main() -> None:
             print("\nNo stale applications found (threshold: 30 days).")
         return
 
-    # ── Follow-up draft ───────────────────────────────────────────────────────
+    # Follow-up draft
     if args.draft_followup:
         from pipeline.tracker.followup import draft, display as display_followup, save as save_followup
         company_arg, role_arg = args.draft_followup
@@ -215,7 +215,7 @@ def main() -> None:
                 print(f"Draft saved: {saved}")
         return
 
-    # ── Negotiation brief ─────────────────────────────────────────────────────
+    # Negotiation brief
     if args.negotiate:
         import subprocess
         from pipeline.tracker.negotiation import run as run_negotiate
@@ -227,7 +227,7 @@ def main() -> None:
         subprocess.run(["open", str(html_path)], check=False)
         return
 
-    # ── Weekly digest ─────────────────────────────────────────────────────────
+    # Weekly digest
     if args.digest:
         import subprocess
         from pipeline.tracker.digest import generate as gen_digest, display as disp_digest, save_html as save_digest
@@ -238,7 +238,7 @@ def main() -> None:
         subprocess.run(["open", str(html_path)], check=False)
         return
 
-    # ── LinkedIn profile optimizer ────────────────────────────────────────────
+    # LinkedIn profile optimizer
     if args.linkedin_optimize:
         import subprocess
         from pipeline.linkedin.optimizer import run as run_linkedin
@@ -258,7 +258,7 @@ def main() -> None:
         subprocess.run(["open", str(html_path)], check=False)
         return
 
-    # ── Discovery: run scrapers + send digest ────────────────────────────────
+    # Discovery: run scrapers + send digest
     if args.discover:
         from pipeline.discovery.runner import run as run_discovery
         quiet = not sys.stdout.isatty() if hasattr(sys.stdout, "isatty") else False
@@ -274,7 +274,7 @@ def main() -> None:
             print("  (email skipped — check GMAIL_APP_PASSWORD in .env)")
         return
 
-    # ── Email-only check (launchd 15-min interval) ───────────────────────────
+    # Email-only check (launchd 15-min interval)
     if args.email_check:
         from pipeline.discovery.runner import run_email_only
         added = run_email_only()
@@ -282,27 +282,27 @@ def main() -> None:
             print(f"Email check: {added} new job{'s' if added != 1 else ''} added to tracker")
         return
 
-    # ── Regen: people intel ───────────────────────────────────────────────────
+    # Regen: people intel
     if args.regen_intel:
         _regen_intel(Path(args.regen_intel))
         return
 
-    # ── Regen: cover letter ───────────────────────────────────────────────────
+    # Regen: cover letter
     if args.regen_cover:
         _regen_cover(Path(args.regen_cover))
         return
 
-    # ── Regen: resume ─────────────────────────────────────────────────────────
+    # Regen: resume
     if args.regen_resume:
         _regen_resume(Path(args.regen_resume))
         return
 
-    # ── Re-run council on existing application folder ─────────────────────────
+    # Re-run council on existing application folder
     if args.council:
         _run_council_regen(Path(args.council))
         return
 
-    # ── Interview prep ────────────────────────────────────────────────────────
+    # Interview prep
     if args.prep:
         import subprocess
         from pipeline.interview.prep_generator import run as run_prep
@@ -323,7 +323,7 @@ def main() -> None:
         subprocess.run(["open", str(html_path)], check=False)
         return
 
-    # ── People intel only ─────────────────────────────────────────────────────
+    # People intel only
     if args.intel:
         from pipeline.people_intel.pdf_renderer import run as render_intel
         md_path = Path(args.intel)
@@ -331,7 +331,7 @@ def main() -> None:
         print(f"PDF saved: {out_pdf}")
         return
 
-    # ── Tailor only ───────────────────────────────────────────────────────────
+    # Tailor only
     if args.tailor:
         import json as _json
         from pipeline.tailoring.tailor import run as run_tailor
@@ -362,7 +362,7 @@ def main() -> None:
             print(f"ATS score:    {ats_result['score']}/100  [{ats_result['grade']}]")
         return
 
-    # ── Full pipeline (JD PDF) ────────────────────────────────────────────────
+    # Full pipeline (JD PDF)
     jd_pdf = Path(args.jd_pdf)
     if not jd_pdf.exists():
         logger.error("JD PDF not found: %s", jd_pdf)
@@ -378,7 +378,7 @@ def main() -> None:
     raw_text = extract_text(jd_pdf)
     jd = parse(raw_text)
 
-    # Claude extraction — fires only when regex parse left company/role blank
+    # Claude extraction, fires only when regex parse left company/role blank
     if not jd.company or not jd.role:
         from pipeline.ingest.jd_extractor import extract_company_role
         logger.info("Company/role not found by regex — calling Claude extractor")
@@ -393,10 +393,10 @@ def main() -> None:
     today = datetime.now().strftime("%Y-%m-%d")
     slug = _make_slug(company, role)
 
-    # Duplicate detection — warn if already applied to this role
+    # Duplicate detection, warn if already applied to this role
     _check_for_duplicate(company, role)
 
-    # Stage 1.5: Job Viability Assessment — ghost job + freshness check before any API credits spent
+    # Stage 1.5: Job Viability Assessment: ghost job + freshness check before any API credits spent
     from pipeline.research.viability_checker import check as viability_check, display as viability_display, should_block as viability_blocks
     from utils.progress import spinner, stage as show_stage, done as show_done
     logger.info("Stage 1.5: Job viability check for %s / %s", company, role)
@@ -422,7 +422,7 @@ def main() -> None:
                 print("\nNon-interactive terminal — use --context to override ghost job block.")
                 sys.exit(1)
 
-    # Salary intel — fetch from Perplexity if JD did not post comp
+    # Salary intel - fetch from Perplexity if JD did not post comp
     salary_intel = {}
     original_salary = jd.salary_range  # preserve before any mutation
     if not jd.salary_range or jd.salary_range in ("Not listed", "Not specified"):
@@ -516,7 +516,7 @@ def main() -> None:
             output_dir=app_folder / "tailoring_json",
         )
 
-    # Stage 4a: Keyword gap + grammar pre-scan — both fed to council as context
+    # Stage 4a: Keyword gap + grammar pre-scan - both fed to council as context
     from pipeline.research.keyword_gap import compute_gap
     from pipeline.tailoring.json_validator import grammar_check as grammar_check_json
     with open(tailoring_path, encoding="utf-8") as _f:
@@ -529,7 +529,7 @@ def main() -> None:
     if _grammar_issues:
         logger.info("Grammar pre-scan: %d field(s) flagged — council will review", len(_grammar_issues))
 
-    # Stage 4b: Council — reviews summary + cover letter, patches tailoring JSON with both
+    # Stage 4b: Council, reviews summary + cover letter, patches tailoring JSON with both
     council_path = None
     from utils.config import get as _cfg_get
     if _cfg_get("tailoring.council_enabled", True) and os.getenv("PERPLEXITY_API_KEY"):
@@ -574,7 +574,7 @@ def main() -> None:
     else:
         logger.debug("Council skipped (disabled or no PERPLEXITY_API_KEY)")
 
-    # Review gate — pause before applying JSON to DOCX so user can inspect/edit
+    # Review gate, pause before applying JSON to DOCX so user can inspect/edit
     if _cfg_get("tailoring.review_gate", True):
         print(f"\n  Tailoring JSON: {tailoring_path}")
         try:
@@ -684,7 +684,7 @@ def main() -> None:
         slug=slug,
     )
 
-    # Stage 10: Tracker (upsert — no duplicate if pipeline reruns)
+    # Stage 10: Tracker (upsert, no duplicate if pipeline reruns)
     from pipeline.tracker.tracker import add_entry
     _override_reason = ""
     if "OVERRIDE" in application_context:
@@ -702,7 +702,7 @@ def main() -> None:
         override_reason=_override_reason,
     )
 
-    # Stage 11: Google Drive — prompt user
+    # Stage 11: Google Drive: prompt user
     show_done("Pipeline Complete")
     print(f"\n{'='*60}")
     print(f"  APPLICATION READY: {company}")
@@ -762,7 +762,7 @@ def _copy_to_gdrive(
     from utils.config import get
 
     if gdrive_target:
-        # Exact path provided by pace (PDF was picked from GDrive) — use it directly
+        # Exact path provided by pace (PDF was picked from GDrive) - use it directly
         company_folder = Path(gdrive_target)
     else:
         mount = Path(get("gdrive.mount_base", "")).expanduser()
@@ -778,11 +778,11 @@ def _copy_to_gdrive(
     for d in (final_dir, draft_dir, research_dir):
         d.mkdir(parents=True, exist_ok=True)
 
-    # 01_Final Documents — clean filenames only
+    # 01_Final Documents - clean filenames only
     final_files = [resume_path, cover_path]
-    # 02_Draft Documents — slugged copies + plain-text cover letter
+    # 02_Draft Documents, slugged copies + plain-text cover letter
     draft_files = [named_resume, named_cover, cover_txt_path]
-    # 03_Research — intel PDF, exec summary, council report
+    # 03_Research, intel PDF, exec summary, council report
     research_files = [intel_pdf_path, exec_summary_path, council_path]
 
     copied: list[str] = []
@@ -972,7 +972,7 @@ def _check_for_duplicate(company: str, role: str) -> None:
         return
     status = entry.get("status", "")
     if status in ("prompted",):
-        return  # Pipeline rerun before applying — expected, no warning needed
+        return  # Pipeline rerun before applying, expected, no warning needed
     if status in CLOSED_STATUSES:
         print(f"\n  Note: Tracker shows a CLOSED entry for {company} / {role} (status: {status}).")
         print(f"  Continuing will regenerate materials — tracker entry will be updated.\n")

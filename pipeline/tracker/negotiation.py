@@ -1,4 +1,4 @@
-"""Salary negotiation brief — triggered when an application reaches offer status.
+"""Salary negotiation brief: triggered when an application reaches offer status.
 
 Uses Perplexity to pull live comp data, then Claude to build a negotiation
 playbook: upside from the offer, non-base items to push on, BATNA arguments,
@@ -185,7 +185,7 @@ def run(company: str, role: str, offer_amount: str = "") -> Path:
 
 
 def _fetch_market_data(company: str, role: str) -> str:
-    """Pull comp data from Perplexity — returns empty string gracefully."""
+    """Pull comp data from Perplexity - returns empty string gracefully."""
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
         return ""

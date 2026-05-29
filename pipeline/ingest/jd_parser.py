@@ -41,7 +41,7 @@ _ATS_PATTERNS = {
 }
 _REMOTE_PATTERN = re.compile(r"\b(remote|hybrid|work from home|WFH)\b", re.IGNORECASE)
 
-# Apply-by date — matches "apply by", "applications close", "deadline", "posting closes"
+# Apply-by date, matches "apply by", "applications close", "deadline", "posting closes"
 # followed by a date in various formats
 _APPLY_BY_TRIGGERS = re.compile(
     r"(?:apply\s+by|applications?\s+(?:close[sd]?|due|deadline)|"
@@ -104,7 +104,7 @@ def _parse_date_string(s: str) -> str:
             return datetime.strptime(s.strip(), fmt).strftime("%Y-%m-%d")
         except ValueError:
             pass
-    # No year — anchor to current year, promote to next if already past
+    # No year, anchor to current year, promote to next if already past
     today = date.today()
     for fmt in ["%B %d", "%b %d"]:
         try:

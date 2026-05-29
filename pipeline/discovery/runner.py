@@ -1,4 +1,4 @@
-"""Discovery runner — orchestrates all scrapers, normalizes, filters, and updates tracker.
+"""Discovery runner, orchestrates all scrapers, normalizes, filters, and updates tracker.
 
 Called daily by the 6am cron job, or manually via:
     pace --discover          # run scrapers + send digest
@@ -46,7 +46,7 @@ _SCRAPER_LABELS = {
 
 def _quiet():
     # logging.disable() sets a global floor that blocks all records at or below
-    # the given level — affects every logger regardless of individual level config,
+    # the given level - affects every logger regardless of individual level config,
     # including loggers created inside threads after this call (e.g. JobSpy:Linkedin).
     logging.disable(logging.INFO)
 
@@ -65,7 +65,7 @@ def run(send_email: bool = True) -> dict:
     if auto_passed:
         logger.info("Auto-passed %d stale TBD jobs", auto_passed)
 
-    # ── Stage 1: Scrape ───────────────────────────────────────────────────────
+    # Stage 1: Scrape
     show_stage(1, "Scanning all job boards", total=3)
     _quiet()
     with spinner("Running all scrapers in parallel"):
@@ -79,7 +79,7 @@ def run(send_email: bool = True) -> dict:
         label = _SCRAPER_LABELS.get(src, src)
         print(f"        {label:<22} {count:4d} raw  ({elapsed:.1f}s)")
 
-    # ── Stage 2: Normalize, filter, score ────────────────────────────────────
+    # Stage 2: Normalize, filter, score
     show_stage(2, "Normalizing + filtering + scoring", total=3)
     with spinner("Normalizing, deduplicating, scoring"):
         normalized = _normalize_all(raw_results)
@@ -100,7 +100,7 @@ def run(send_email: bool = True) -> dict:
 
     summary = tracker.summary()
 
-    # ── Stage 3: Digest ───────────────────────────────────────────────────────
+    # Stage 3: Digest
     email_sent = False
     if send_email and new_jobs:
         show_stage(3, "Sending digest email", total=3)

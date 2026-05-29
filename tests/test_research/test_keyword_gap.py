@@ -4,7 +4,7 @@ import pytest
 from pipeline.research.keyword_gap import compute_gap, _extract_terms, _clean_jd_text, _tailoring_text
 
 
-# ── _clean_jd_text ────────────────────────────────────────────────────────────
+# _clean_jd_text
 
 def test_clean_removes_bare_urls():
     text = "Apply at https://careers.company.com/jobs/12345 today."
@@ -41,7 +41,7 @@ def test_clean_collapses_whitespace():
     assert "  " not in cleaned
 
 
-# ── _extract_terms ────────────────────────────────────────────────────────────
+# _extract_terms
 
 def test_extract_filters_stop_words():
     terms = _extract_terms("the team will work with the company")
@@ -65,7 +65,7 @@ def test_extract_case_insensitive():
     assert "machine" in terms or "analytics" in terms
 
 
-# ── compute_gap ───────────────────────────────────────────────────────────────
+# compute_gap
 
 def test_compute_gap_full_coverage():
     jd_text = "machine learning analytics optimization"
@@ -114,7 +114,7 @@ def test_compute_gap_empty_tailoring():
     assert gap["coverage_pct"] >= 0
 
 
-# ── _tailoring_text ───────────────────────────────────────────────────────────
+# _tailoring_text
 
 def test_tailoring_text_flattens_all_fields():
     data = {

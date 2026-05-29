@@ -1,4 +1,4 @@
-"""Application tracker — reads and writes application_tracker.json.
+"""Application tracker, reads and writes application_tracker.json.
 
 Status progression:
   prompted → applied → phone_screen → interview → final_round → offer → accepted
@@ -68,7 +68,7 @@ def add_entry(
 
     existing = _find_entry(entries, company, role)
     if existing:
-        # Update in place — don't create a duplicate, don't reset status
+        # Update in place - don't create a duplicate, don't reset status
         if app_folder:
             existing["app_folder"] = app_folder
         if fit_verdict:
@@ -288,7 +288,7 @@ def cleanup_stale(days_threshold: int = 30, dry_run: bool = False) -> list[dict]
     Mark applications as 'ghosted' when no touchpoint in days_threshold days.
 
     Only targets entries with status in (applied, phone_screen, interview, final_round)
-    that have gone silent. 'prompted' entries are skipped — they just haven't been
+    that have gone silent. 'prompted' entries are skipped, they just haven't been
     submitted yet. Returns list of entries that were (or would be) updated.
     """
     staleable = {"applied", "phone_screen", "interview", "final_round"}

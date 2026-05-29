@@ -1,4 +1,4 @@
-"""Follow-up draft generator — context-aware outreach when the tracker says act.
+"""Follow-up draft generator, context-aware outreach when the tracker says act.
 
 Reads the tracker entry for a company/role and generates a ready-to-send
 follow-up message (email or LinkedIn) using Claude. Surfaces automatically
@@ -97,12 +97,12 @@ def draft(company: str, role: str) -> dict:
     Generate a follow-up message draft for an application.
 
     Returns:
-      channel      — "linkedin" | "email"
-      contact_name — name of the primary contact if known, else ""
-      message      — the draft text
-      char_count   — len(message) (relevant for LinkedIn)
-      action       — what triggered this (from compute_next_action)
-      urgency      — "overdue" | "urgent" | "upcoming" | "ok"
+      channel     : "linkedin" | "email"
+      contact_name - name of the primary contact if known, else ""
+      message      : the draft text
+      char_count  : len(message) (relevant for LinkedIn)
+      action      : what triggered this (from compute_next_action)
+      urgency     : "overdue" | "urgent" | "upcoming" | "ok"
     """
     entries = load()
     entry = _find_entry(entries, company, role)

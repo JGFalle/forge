@@ -93,7 +93,7 @@ def generate(
     return out_path
 
 
-# ── Story builder ─────────────────────────────────────────────────────────────
+# Story builder
 
 def _build_story(
     jd: ParsedJD,
@@ -116,25 +116,25 @@ def _build_story(
     story.append(Paragraph(html.escape(role), styles["role"]))
     story.append(Spacer(1, 10))
 
-    # ── Compensation ──────────────────────────────────────────────────────────
+    # Compensation
     story.append(_section_bar("COMPENSATION", fonts))
     story.append(Spacer(1, 6))
     story += _comp_block(jd, salary_intel, styles)
     story.append(Spacer(1, 10))
 
-    # ── Job Overview ─────────────────────────────────────────────────────────
+    # Job Overview
     story.append(_section_bar("JOB OVERVIEW", fonts))
     story.append(Spacer(1, 6))
     story += _overview_block(jd, styles)
     story.append(Spacer(1, 10))
 
-    # ── Key Skills ────────────────────────────────────────────────────────────
+    # Key Skills
     story.append(_section_bar("KEY SKILLS CALLED FOR", fonts))
     story.append(Spacer(1, 6))
     story += _skills_block(jd, styles)
     story.append(Spacer(1, 10))
 
-    # ── Workday Skills ────────────────────────────────────────────────────────
+    # Workday Skills
     workday_skills = _extract_workday_skills(jd, td)
     if workday_skills:
         story.append(_section_bar("WORKDAY SKILLS — TYPE THESE IN", fonts))
@@ -142,7 +142,7 @@ def _build_story(
         story += _workday_skills_block(workday_skills, styles)
         story.append(Spacer(1, 10))
 
-    # ── Resume Modifications ──────────────────────────────────────────────────
+    # Resume Modifications
     story.append(_section_bar("RESUME MODIFICATIONS", fonts))
     story.append(Spacer(1, 6))
     story += _resume_changes_block(td, styles)
@@ -150,7 +150,7 @@ def _build_story(
     return story
 
 
-# ── Section: Compensation ─────────────────────────────────────────────────────
+# Section: Compensation
 
 def _comp_block(jd: ParsedJD, salary_intel: dict, styles: dict) -> list:
     items: list = []
@@ -158,7 +158,7 @@ def _comp_block(jd: ParsedJD, salary_intel: dict, styles: dict) -> list:
     is_posted = bool(posted) and posted not in ("Not listed", "Not specified")
 
     if is_posted:
-        # Green box — confirmed posted comp
+        # Green box: confirmed posted comp
         label = "Posted Compensation"
         value = html.escape(posted)
         bg, border = GREEN_BG, GREEN_BDR
@@ -212,7 +212,7 @@ def _comp_block(jd: ParsedJD, salary_intel: dict, styles: dict) -> list:
     return items
 
 
-# ── Section: Job Overview ─────────────────────────────────────────────────────
+# Section: Job Overview
 
 def _overview_block(jd: ParsedJD, styles: dict) -> list:
     items: list = []
@@ -277,7 +277,7 @@ def _extract_intro(raw_text: str) -> str:
     return ""
 
 
-# ── Section: Key Skills ───────────────────────────────────────────────────────
+# Section: Key Skills
 
 def _skills_block(jd: ParsedJD, styles: dict) -> list:
     reqs = jd.key_requirements or []
@@ -291,7 +291,7 @@ def _skills_block(jd: ParsedJD, styles: dict) -> list:
     return items
 
 
-# ── Section: Workday Skills ───────────────────────────────────────────────────
+# Section: Workday Skills
 
 def _user_skills() -> set[str]:
     skills = _cfg_get("user_skills", [])
@@ -324,7 +324,7 @@ def _extract_workday_skills(jd: ParsedJD, td: dict) -> list[str]:
             if len(clean) > 2 and clean.lower() not in _SKIP_TOKENS:
                 candidates.add(clean)
 
-    # Source 2: competency rows — extract multi-word skill phrases
+    # Source 2: competency rows - extract multi-word skill phrases
     for row in td.get("competencies", []):
         for token in row.split(","):
             clean = token.strip().strip("•").strip()
@@ -344,7 +344,7 @@ def _extract_workday_skills(jd: ParsedJD, td: dict) -> list[str]:
             seen_lower.add(skill.lower())
             final.append(skill)
 
-    return final[:30]  # cap at 30 — Workday fields have limits
+    return final[:30]  # cap at 30; Workday fields have limits
 
 
 def _workday_skills_block(skills: list[str], styles: dict) -> list:
@@ -399,7 +399,7 @@ def _workday_skills_block(skills: list[str], styles: dict) -> list:
     return items
 
 
-# ── Section: Resume Modifications ─────────────────────────────────────────────
+# Section: Resume Modifications
 
 def _resume_changes_block(td: dict, styles: dict) -> list:
     items: list = []
@@ -468,7 +468,7 @@ def _role_label(role_id: str, company: str) -> str:
     return f"{company} ({role_id})"
 
 
-# ── PDF Primitives ────────────────────────────────────────────────────────────
+# PDF Primitives
 
 def _section_bar(text: str, fonts: dict) -> Table:
     bar_style = ParagraphStyle(

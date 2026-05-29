@@ -42,7 +42,7 @@ def send(new_jobs: list[dict], tracker_summary: dict) -> bool:
     body.attach(MIMEText(html, "html"))
     msg.attach(body)
 
-    # CSV attachment — full tracker file
+    # CSV attachment, full tracker file
     csv_path = Path(get("discovery.tracker_csv", "")).expanduser()
     if csv_path.exists():
         with open(csv_path, "rb") as f:

@@ -1,7 +1,7 @@
 """Terminal progress indicators for the PACE pipeline.
 
 Provides a spinner context manager for API calls and a stage progress bar
-for the overall pipeline. No external dependencies — stdlib only.
+for the overall pipeline. No external dependencies - stdlib only.
 """
 
 from __future__ import annotations

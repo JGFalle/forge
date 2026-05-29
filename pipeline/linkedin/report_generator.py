@@ -20,7 +20,7 @@ def generate(result: dict, profile: dict[str, Any], output_dir: Path, today: str
     return out
 
 
-# ── Section builders ──────────────────────────────────────────────────────────
+# Section builders
 
 def _build_body(result: dict, profile: dict) -> str:
     sections = []
@@ -28,7 +28,7 @@ def _build_body(result: dict, profile: dict) -> str:
     # Header
     sections.append(_header(result))
 
-    # Implementation checklist (top of page — most actionable)
+    # Implementation checklist (top of page - most actionable)
     sections.append(_checklist(result.get("implementation_checklist", [])))
 
     # Headline
@@ -280,7 +280,7 @@ def _keywords_section(result: dict) -> str:
 </div>"""
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _char_bar(count: int, limit: int, target: int) -> str:
     pct = min(count / limit * 100, 100)
@@ -296,7 +296,7 @@ def _char_bar(count: int, limit: int, target: int) -> str:
 </div>"""
 
 
-# ── Page wrapper ──────────────────────────────────────────────────────────────
+# Page wrapper
 
 def _wrap_page(body: str, today: str) -> str:
     return f"""<!DOCTYPE html>

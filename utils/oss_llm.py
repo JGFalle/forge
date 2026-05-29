@@ -1,9 +1,9 @@
-"""Unified OSS LLM client — Groq, Google Gemini, or Ollama.
+"""Unified OSS LLM client, Groq, Google Gemini, or Ollama.
 
 Priority order when auto-detecting:
-  1. Groq (GROQ_API_KEY set)       — Llama 3.3 70B, fastest free option
-  2. Gemini (GOOGLE_API_KEY set)   — Gemini 2.5 Flash, different architecture
-  3. Ollama (running locally)      — zero cost, zero rate limits, offline
+  1. Groq (GROQ_API_KEY set)      - Llama 3.3 70B, fastest free option
+  2. Gemini (GOOGLE_API_KEY set)  - Gemini 2.5 Flash, different architecture
+  3. Ollama (running locally)      - zero cost, zero rate limits, offline
 
 Call generate() and it routes to whatever is available.
 All providers return a plain string.
@@ -22,7 +22,7 @@ from utils.logging import get_logger
 load_dotenv(Path(".env"))
 logger = get_logger(__name__)
 
-# Default models per provider — overridable via config oss.*
+# Default models per provider, overridable via config oss.*
 _DEFAULTS = {
     "groq":   "llama-3.3-70b-versatile",
     "gemini": "gemini-2.5-flash",
@@ -125,7 +125,7 @@ def generate_multi(
     return results
 
 
-# ── Provider implementations ──────────────────────────────────────────────────
+# Provider implementations
 
 def _groq(prompt: str, system: str, model: str, max_tokens: int) -> str:
     from groq import Groq

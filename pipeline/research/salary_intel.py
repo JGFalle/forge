@@ -1,4 +1,4 @@
-"""Salary intelligence — infer comp band when the JD does not post compensation.
+"""Salary intelligence, infer comp band when the JD does not post compensation.
 
 Uses Perplexity Sonar to query live salary data from Levels.fyi, LinkedIn Salary,
 Glassdoor, and state pay transparency disclosures. Returns empty string gracefully
@@ -23,10 +23,10 @@ def fetch_salary_intel(company: str, role: str, location: str = "") -> dict:
     Return salary intelligence for a role at a company.
 
     Result keys:
-      estimated_range  — short string: "$185K–$215K base" or "" if unavailable
-      confidence       — "high" | "medium" | "low" | "unknown"
-      source_note      — one-line attribution
-      raw              — full Perplexity response (for saving to research/)
+      estimated_range  - short string: "$185K-$215K base" or "" if unavailable
+      confidence       - "high" | "medium" | "low" | "unknown"
+      source_note      - one-line attribution
+      raw              - full Perplexity response (for saving to research/)
 
     Returns empty strings / "unknown" on failure.
     """
@@ -79,7 +79,7 @@ def _parse_response(raw: str) -> dict:
     """Extract the range string, confidence, and source note from Perplexity's response."""
     import re
 
-    # Try to pull a salary range pattern: $XXX–$XXX or $XXXK–$XXXK
+    # Try to pull a salary range pattern: $XXX-$XXX or $XXXK-$XXXK
     range_match = re.search(
         r"\$[\d,]+[KkMm]?\s*[–\-—to]+\s*\$[\d,]+[KkMm]?",
         raw,
@@ -120,7 +120,7 @@ def _parse_response(raw: str) -> dict:
 def display_salary_intel(intel: dict, posted_salary: str) -> None:
     """Print salary intel inline with fit assessment output."""
     if posted_salary and posted_salary not in ("Not listed", "Not specified", ""):
-        return  # JD posted comp — no need to print estimate
+        return  # JD posted comp, no need to print estimate
 
     if not intel.get("estimated_range"):
         return

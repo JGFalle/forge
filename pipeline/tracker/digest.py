@@ -1,4 +1,4 @@
-"""Weekly pipeline digest — executive summary of the active job search.
+"""Weekly pipeline digest, executive summary of the active job search.
 
 Prints to terminal and saves an HTML version to outputs/.
 Triggered by: python run.py --digest
@@ -21,7 +21,7 @@ from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Tier classification — mirrors CLAUDE.md
+# Tier classification - mirrors CLAUDE.md
 _TIER1 = {"home depot", "the coca-cola company", "coca-cola", "americold", "delta air lines", "delta", "ups", "georgia-pacific"}
 _TIER2 = {"manhattan associates", "blue yonder", "greyorange", "symbotic", "autostore", "dematic", "o9 solutions", "kinaxis"}
 _TIER3 = {"ey", "deloitte", "accenture", "4flow", "maine pointe", "alixpartners"}
@@ -99,7 +99,7 @@ def generate() -> dict:
     # Tier coverage
     tier_counts = Counter(_tier(e["company"]) for e in active)
 
-    # Conversion funnel (closed only — need enough data to be meaningful)
+    # Conversion funnel (closed only, need enough data to be meaningful)
     applied_count = len([e for e in entries if e.get("status") not in ("prompted",)])
     phone_count = sum(
         1 for e in entries

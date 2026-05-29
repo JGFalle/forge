@@ -7,7 +7,7 @@ from pipeline.research.viability_checker import (
 )
 
 
-# ── _skipped ─────────────────────────────────────────────────────────────────
+# _skipped
 
 def test_skipped_has_correct_shape():
     s = _skipped()
@@ -17,7 +17,7 @@ def test_skipped_has_correct_shape():
     assert s["recommendation"] == "proceed"
 
 
-# ── should_block ──────────────────────────────────────────────────────────────
+# should_block
 
 def test_should_block_high_risk():
     result = {"ghost_risk": "high", "skipped": False}
@@ -38,7 +38,7 @@ def test_should_block_skipped():
     assert should_block(_skipped()) is False
 
 
-# ── check — no Perplexity key → skipped ──────────────────────────────────────
+# check - no Perplexity key → skipped
 
 def test_check_skips_without_perplexity_key():
     with patch.dict("os.environ", {}, clear=True):
@@ -46,7 +46,7 @@ def test_check_skips_without_perplexity_key():
     assert result["skipped"] is True
 
 
-# ── check — Perplexity available, haiku structures result ────────────────────
+# check, Perplexity available, haiku structures result
 
 def _mock_viability_result():
     return {
@@ -76,7 +76,7 @@ def test_check_skips_when_perplexity_returns_empty():
     assert result["skipped"] is True
 
 
-# ── display — smoke tests ─────────────────────────────────────────────────────
+# display, smoke tests
 
 def test_display_skipped_prints_nothing(capsys):
     display(_skipped())

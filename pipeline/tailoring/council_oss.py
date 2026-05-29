@@ -21,7 +21,7 @@ from utils.oss_llm import generate_multi, generate as llm_generate, available_pr
 
 logger = get_logger(__name__)
 
-# ── Panel prompts ──────────────────────────────────────────────────────────────
+# Panel prompts
 
 _PANEL_PROMPT = """\
 Review this resume summary and cover letter against the job description.
@@ -87,7 +87,7 @@ Return ONLY a JSON object with these fields:
 }}"""
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
+# Public API
 
 def run(
     company: str,
@@ -116,7 +116,7 @@ def run(
         cover_letter=cover_letter,
     )
 
-    # ── Stage 1: Parallel panel calls ─────────────────────────────────────────
+    # Stage 1: Parallel panel calls
     logger.info("OSS council: running panel across %d voices", len(_active_voices()))
     panel_results = generate_multi(panel_prompt, max_tokens=500)
 
@@ -128,7 +128,7 @@ def run(
         logger.warning("OSS council: no panel responses received")
         return _skipped()
 
-    # ── Stage 2: Aggregator ───────────────────────────────────────────────────
+    # Stage 2: Aggregator
     summary_max = get("tailoring.summary_max_chars", 500)
     cover_max   = get("tailoring.cover_letter_words_max", 150)
 
@@ -171,7 +171,7 @@ def run(
     }
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _active_voices() -> list[dict]:
     voices = get("oss.council_voices", [])

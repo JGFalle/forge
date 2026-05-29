@@ -5,11 +5,11 @@ the same markdown format as intel_generator.py so the rest of the pipeline
 (pdf_renderer, outreach_extractor) works without changes.
 
 Data sources (all free, no paid API):
-  - edgartools  — SEC filings: named executives in DEF 14A, 8-K transcripts
-  - ddgs        — LinkedIn profile discovery via search
-  - Wikipedia-API — company background and recent history
-  - linkedin-api  — optional, requires a LinkedIn account credential
-  - Hunter.io    — optional, 25 free email lookups/month
+  - edgartools   - SEC filings: named executives in DEF 14A, 8-K transcripts
+  - ddgs         - LinkedIn profile discovery via search
+  - Wikipedia-API - company background and recent history
+  - linkedin-api - optional, requires a LinkedIn account credential
+  - Hunter.io    - optional, 25 free email lookups/month
 
 The OSS LLM (Groq/Gemini/Ollama) writes the final markdown from the
 gathered data using the same prompt format as the cloud version.
@@ -45,7 +45,7 @@ def generate(
     return out
 
 
-# ── Data gatherers ─────────────────────────────────────────────────────────────
+# Data gatherers
 
 def _gather(company: str, role: str) -> dict:
     data: dict = {
@@ -269,7 +269,7 @@ def _guess_domain(company: str) -> str:
     return f"{clean}.com"
 
 
-# ── Markdown renderer ──────────────────────────────────────────────────────────
+# Markdown renderer
 
 def _render_markdown(company: str, role: str, data: dict, jd_text: str) -> str:
     """Use an OSS LLM to write the people intel markdown from gathered data."""
@@ -378,7 +378,7 @@ def _build_context_block(company: str, data: dict) -> str:
 
 
 def _fallback_markdown(company: str, role: str, data: dict, name: str) -> str:
-    """Plain markdown when no LLM is available — structured data only, no synthesis."""
+    """Plain markdown when no LLM is available: structured data only, no synthesis."""
     lines = [f"# {company} — People Intelligence (OSS Data)", ""]
 
     lines += ["## Business Unit & Strategic Intelligence", ""]

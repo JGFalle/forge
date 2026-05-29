@@ -1,4 +1,4 @@
-"""Fit assessment engine — runs before any materials are generated.
+"""Fit assessment engine, runs before any materials are generated.
 
 Calls Claude to score a JD against the user's vision profile across four dimensions,
 returns a structured verdict (STRONG_FIT / STRETCH / HARD_PASS), and surfaces
