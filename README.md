@@ -28,9 +28,18 @@ Drop a job description PDF. The pipeline runs:
 ## Requirements
 
 - Python 3.11+
-- Anthropic API key (required)
-- Perplexity API key (strongly recommended — unlocks ghost job detection, salary intel, and council review)
 - Your resume as a `.docx` file
+- **At least one LLM** — paid or free (see options below)
+
+**You do not need Anthropic or Perplexity.** FORGE runs fully open-source at zero cost. Paid APIs give you higher quality output — but every feature has a free alternative that kicks in automatically when a key is absent.
+
+| Mode | What you need | Cost |
+|---|---|---|
+| **Full cloud** | `ANTHROPIC_API_KEY` + `PERPLEXITY_API_KEY` | ~$5-15/month depending on volume |
+| **Hybrid** | `ANTHROPIC_API_KEY` only | ~$3-8/month — OSS handles research |
+| **Full OSS** | A free `GROQ_API_KEY` (or Ollama installed locally) | $0 — no credit card ever |
+
+Get a free Groq key at [console.groq.com](https://console.groq.com) — no credit card, 1,000 requests/day, takes 2 minutes.
 
 ---
 
@@ -39,20 +48,39 @@ Drop a job description PDF. The pipeline runs:
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/yourusername/forge.git
+git clone https://github.com/JGFalle/forge.git
 cd forge
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# Standard install (cloud mode)
 pip install -e .
+
+# Open-source mode (adds ddgs, jobspy, edgartools, groq, gemini, ollama)
+pip install -e ".[oss]"
 ```
 
-### 2. Set up your API keys
+### 2. Set up your keys
 
 ```bash
 cp .env.template .env
 ```
 
-Open `.env` and fill in your keys. At minimum you need `ANTHROPIC_API_KEY`. See `.env.template` for what each key unlocks.
+Open `.env`. Fill in **at least one** of the following:
+
+```bash
+# Option A — free, no credit card (recommended starting point)
+GROQ_API_KEY=gsk_...          # free at console.groq.com
+
+# Option B — paid, best quality
+ANTHROPIC_API_KEY=sk-ant-...  # console.anthropic.com
+
+# Option C — fully offline, no account needed
+# Install Ollama from ollama.com, then: ollama pull llama3.1:8b
+# No key needed — FORGE detects it automatically
+```
+
+See `.env.template` for the full list of optional keys and what each one unlocks.
 
 ### 3. Configure your profile
 
