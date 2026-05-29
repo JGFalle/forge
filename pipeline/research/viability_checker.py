@@ -54,16 +54,21 @@ Keep each signal list to 3 items max. Be specific and cite dates or sources wher
 """.strip()
 
 
-def check(company: str, role: str) -> dict:
+def check(company: str, role: str, job_url: str = "") -> dict:
     """
     Run job viability assessment.
     Returns result dict with ghost_risk, freshness_verdict, signals, recommendation.
-    Returns skipped=True gracefully if Perplexity API is unavailable.
+    Falls back to OSS (ddgs + feedparser + Wayback CDX) when Perplexity is unavailable.
     """
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.debug("PERPLEXITY_API_KEY not set — skipping viability check")
-        return _skipped()
+        logger.info("PERPLEXITY_API_KEY not set — using OSS viability check")
+        try:
+            from pipeline.research.viability_oss import check as oss_check
+            return oss_check(company, role, job_url=job_url)
+        except ImportError:
+            logger.debug("viability_oss dependencies missing — skipping viability check")
+            return _skipped()
 
     research = _fetch_viability_research(company, role, api_key)
     if not research:

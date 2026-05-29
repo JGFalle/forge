@@ -181,11 +181,27 @@ def run_council(
     missing_keywords: list[str] | None = None,
     application_context: str = "",
 ) -> dict:
-    """Run the council. Returns structured result or empty dict if skipped."""
+    """Run the council. Falls back to OSS (Groq/Gemini/Ollama) when Perplexity is unavailable."""
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.debug("PERPLEXITY_API_KEY not set — council skipped")
-        return {}
+        logger.info("PERPLEXITY_API_KEY not set — using OSS council (Groq/Gemini/Ollama)")
+        try:
+            from pipeline.tailoring.council_oss import run as oss_run
+            return oss_run(
+                company=company,
+                role=role,
+                summary=summary,
+                cover_letter=cover_letter,
+                jd_excerpt=jd_text[:3000],
+                missing_keywords=missing_keywords or [],
+                application_context=application_context,
+            )
+        except ImportError:
+            logger.warning("council_oss dependencies not installed — council skipped")
+            return {}
+        except Exception as exc:
+            logger.warning("OSS council failed: %s — skipping", exc)
+            return {}
 
     try:
         from openai import OpenAI

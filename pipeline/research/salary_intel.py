@@ -32,8 +32,19 @@ def fetch_salary_intel(company: str, role: str, location: str = "") -> dict:
     """
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.debug("PERPLEXITY_API_KEY not set — skipping salary intel")
-        return _empty()
+        logger.info("PERPLEXITY_API_KEY not set — using OSS salary intel (BLS + H-1B LCA)")
+        try:
+            from pipeline.research.salary_oss import fetch as oss_fetch
+            result = oss_fetch(company, role, location)
+            return {
+                "estimated_range": result.get("estimated_range", ""),
+                "confidence":      result.get("confidence", "low"),
+                "source_note":     result.get("source_note", ""),
+                "raw":             result.get("raw_text", ""),
+            }
+        except ImportError:
+            logger.debug("salary_oss dependencies missing — skipping salary intel")
+            return _empty()
 
     loc_fragment = f" based in {location}" if location and location != "Not specified" else ""
     query = (

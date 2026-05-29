@@ -247,6 +247,61 @@ google_docs:
   base_resume: ""
 
 
+# ── Open-Source Mode ──────────────────────────────────────────────────────────
+# When paid API keys are absent, FORGE automatically falls back to open-source
+# backends. Configure your OSS LLM preferences and optional data sources here.
+#
+# Quick start:
+#   Minimum: set GROQ_API_KEY in .env (free at console.groq.com, no credit card)
+#   Full OSS: set GROQ_API_KEY + GOOGLE_API_KEY + start Ollama locally
+#   Zero cloud: just start Ollama locally (install at ollama.com)
+oss:
+  # LLM provider preference: "groq", "gemini", "ollama", "mistral", or "auto"
+  # "auto" tries Groq → Gemini → Ollama → Mistral in that order
+  preferred_llm: "auto"
+
+  # Model overrides (leave blank to use defaults)
+  groq_model: ""       # default: llama-3.3-70b-versatile
+  gemini_model: ""     # default: gemini-2.5-flash
+  ollama_model: ""     # default: llama3.1:8b
+  mistral_model: ""    # default: mistral-large-latest
+
+  # Ollama local server URL
+  ollama_base_url: "http://localhost:11434"
+
+  # Council voice configuration — three providers for model diversity.
+  # Remove entries for providers you don't have. One voice minimum required.
+  council_voices:
+    - provider: "groq"
+      model: "llama-3.3-70b-versatile"
+    - provider: "gemini"
+      model: "gemini-2.5-flash"
+    - provider: "ollama"
+      model: "mistral:7b"
+
+  # Hunter.io API key for email format discovery (free tier: 25 lookups/month)
+  # Get one at: https://hunter.io — no credit card required for free tier
+  hunter_api_key: ""
+
+  # Path to DOL H-1B LCA disclosure CSV for company-specific salary data.
+  # Download from: https://www.dol.gov/agencies/eta/foreign-labor/performance
+  # Leave blank to use BLS OES only (less precise but always available).
+  h1b_lca_csv_path: ""
+
+  # ATS board configurations for direct company career page scraping.
+  # No API key needed. Supports: greenhouse, lever, ashby, workable, recruitee.
+  # Find board_token in the company's careers URL (e.g. boards.greenhouse.io/{token})
+  ats_boards: []
+  # Example:
+  # ats_boards:
+  #   - company: "Acme Corp"
+  #     ats: "greenhouse"
+  #     board_token: "acmecorp"
+  #   - company: "Scale AI"
+  #     ats: "lever"
+  #     board_token: "scaleai"
+
+
 # ── Pipeline Behavior ──────────────────────────────────────────────────────────
 pipeline:
   # Seconds to wait for a file drop before timing out (0 = wait forever)

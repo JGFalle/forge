@@ -211,6 +211,151 @@ For automated email checks, set up a cron job:
 
 ---
 
+## Open-Source Mode (no paid APIs)
+
+FORGE detects which API keys are present and automatically routes to the best available backend. You can run the full pipeline with zero paid APIs.
+
+### How it works
+
+| API key absent | FORGE does instead |
+|---|---|
+| No `ANTHROPIC_API_KEY` | Uses Groq / Gemini / Ollama for tailoring, cover letter, fit scoring |
+| No `PERPLEXITY_API_KEY` | Ghost job check via `ddgs` + Google News RSS + Wayback CDX; salary intel via BLS OES + H-1B LCA data; council review via Groq + Gemini + Ollama panel |
+| No `SERPAPI_API_KEY` | Job discovery via `python-jobspy` (Indeed, ZipRecruiter, Google) + direct ATS APIs (Greenhouse, Lever, Ashby) |
+
+The switch is automatic — just leave the key unset.
+
+### OSS Mode Quick Start
+
+**Minimum (one free key):**
+```bash
+# Get a free Groq API key at console.groq.com (no credit card)
+echo "GROQ_API_KEY=gsk_..." >> .env
+pip install -e ".[oss]"
+python run.py path/to/jd.pdf
+```
+
+**Full OSS (zero ongoing cost, offline capable):**
+```bash
+# Install Ollama from ollama.com, then pull a model
+ollama pull llama3.1:8b
+ollama pull mistral:7b
+
+# Get free Groq and Gemini keys for council diversity
+echo "GROQ_API_KEY=gsk_..." >> .env
+echo "GOOGLE_API_KEY=AIza..." >> .env
+
+pip install -e ".[oss]"
+python run.py path/to/jd.pdf
+```
+
+**Discovery without SerpApi:**
+```bash
+# JobSpy scrapes Indeed, ZipRecruiter, Google Jobs — no key needed
+# Add ATS boards for direct company career page access
+pip install python-jobspy
+
+# Configure target ATS boards in config.yaml under oss.ats_boards
+python run.py --discover
+```
+
+### OSS Pros and Cons
+
+#### Ghost Job Viability Check
+
+| | Cloud (Perplexity) | OSS (ddgs + feedparser + Wayback CDX) |
+|---|---|---|
+| **Quality** | Excellent — live web reasoning | Good — raw signals without synthesis |
+| **What you get** | AI-structured risk verdict with sourced evidence | Layoff headlines + posting age check |
+| **What you miss** | Nothing significant | No narrative summary of signals |
+| **Cost** | ~$0.01/check | Free |
+| **Reliability** | High | Good — depends on news availability |
+| **Gotcha** | Requires PERPLEXITY_API_KEY | `ddgs` can 429 at high volume; add sleep |
+
+#### Salary Intelligence
+
+| | Cloud (Perplexity) | OSS (BLS OES + H-1B LCA) |
+|---|---|---|
+| **Quality** | Good — live Glassdoor/Levels.fyi data | Good for filed roles; weak where H-1B absent |
+| **What you get** | Real-time market range with source citations | BLS national median + actual employer filings |
+| **What you miss** | Nothing for most roles | Non-H-1B roles (domestic-only hires) get BLS only |
+| **Best for** | Any role at any company | Supply chain / ops at large employers who file H-1B |
+| **Setup** | Just the API key | Optional: download DOL H-1B CSV (~200MB, one-time) |
+| **Gotcha** | Glassdoor/Levels.fyi bot-protected in 2026 | BLS median skews low vs. F500 Director comp |
+
+To get the most out of OSS salary intel, download the H-1B LCA disclosure file:
+1. Go to: https://www.dol.gov/agencies/eta/foreign-labor/performance
+2. Download the most recent annual H-1B LCA disclosure data (Excel)
+3. Save to CSV and set `oss.h1b_lca_csv_path` in `config/config.yaml`
+4. On first run, FORGE builds a SQLite cache automatically (~30 seconds)
+
+#### People Intel (Hiring Manager Research)
+
+| | Cloud (Perplexity + Claude) | OSS (edgartools + ddgs + Wikipedia + OSS LLM) |
+|---|---|---|
+| **Quality** | Excellent — synthesized research + outreach messages | Fair-Good — structured data, LLM writes messages |
+| **What you get** | Named contacts, earnings call quotes, ready-to-send outreach | SEC executive names, LinkedIn URLs, company context, LLM-written outreach |
+| **What you miss** | Nothing | Live web synthesis; mid-level hiring manager names harder to find |
+| **Best for** | Any company | F500 public companies (rich SEC data) |
+| **Gotcha** | Costs API credits per application | `linkedin-api` has ban risk at high volume; SEC data covers VP+ only |
+
+**Optional enhancers for OSS people intel:**
+- **Hunter.io free tier** (25 lookups/month) — add `HUNTER_API_KEY` to `.env` and set `oss.hunter_api_key` in config to find email formats
+- **linkedin-api** — `pip install linkedin-api` — requires a LinkedIn account credential, works at low volume (1-2 lookups/day)
+
+#### Model Council
+
+| | Cloud (Perplexity sonar panel) | OSS (Groq + Gemini + Ollama) |
+|---|---|---|
+| **Quality** | Excellent | Excellent — genuine model family diversity |
+| **What you get** | 3 Perplexity models + aggregator | Llama 70B + Gemini Flash + Mistral 7B + aggregator |
+| **Model diversity** | Same provider, different sizes | Different architectures (Meta / Google / Mistral) |
+| **Speed** | Fast | Fast (Groq is 300-500 tok/s) |
+| **Cost** | ~$0.02/council run | Free — Groq (1K req/day) + Gemini (250 req/day) + Ollama (unlimited) |
+| **Gotcha** | Requires PERPLEXITY_API_KEY | Need at least one provider configured |
+
+This is the strongest OSS replacement — genuinely different model families provide better diversity than same-provider size variants.
+
+#### Discovery Scraping
+
+| | Cloud (SerpApi) | OSS (python-jobspy + ATS direct APIs) |
+|---|---|---|
+| **Quality** | Good-Excellent | Good |
+| **Boards covered** | Indeed, LinkedIn, Google, Glassdoor | Indeed, ZipRecruiter, Google (jobspy) + Greenhouse/Lever/Ashby (ATS direct) |
+| **LinkedIn** | Reliable | Rate-limited; proxies needed for high volume |
+| **Glassdoor** | Fair | Poor — heavily bot-protected |
+| **ATS direct** | Not applicable | Excellent for Greenhouse/Lever/Ashby companies — zero rate limits |
+| **Cost** | Paid per search | Free |
+| **Gotcha** | $50/month for meaningful volume | JobSpy can hit LinkedIn rate limits; add proxy config for high volume |
+
+Direct ATS APIs (Greenhouse, Lever, Ashby) are the hidden gem here — no rate limits, no bot protection, and many tech companies use them. Configure `oss.ats_boards` in `config/config.yaml` for your specific target companies.
+
+### What stays the same in OSS mode
+
+These features don't touch any paid API — they work identically regardless of mode:
+
+- JD parsing and text extraction (pdfplumber)
+- Resume DOCX modification (python-docx)
+- ATS compatibility scoring
+- Keyword gap analysis
+- Cover letter word count and em-dash validation
+- Application tracker
+- Google Drive sync
+- Pipeline dashboard
+
+### OSS mode quality summary
+
+| Feature | OSS quality vs. cloud |
+|---|---|
+| Ghost job check | ~80% — signals without synthesis |
+| Salary intel | ~75% — good for H-1B-heavy roles, weaker for domestic-only |
+| People intel | ~55% — structured data good, narrative synthesis limited |
+| Model council | ~90% — different architecture families, genuinely comparable |
+| Discovery scraping | ~85% — slight LinkedIn gap vs. SerpApi |
+| Resume/cover letter generation | ~80% — quality gap narrows with Llama 70B or Gemini |
+
+---
+
 ## Output folder structure
 
 ```

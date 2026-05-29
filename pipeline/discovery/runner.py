@@ -71,10 +71,13 @@ def run(send_email: bool = True) -> dict:
     with spinner("Running all scrapers in parallel"):
         raw_results, timings = _run_all_scrapers()
 
-    for src in ("indeed", "linkedin", "workday", "serpapi", "email"):
+    _SCRAPER_LABELS["jobspy"] = "JobSpy (OSS)"
+    _SCRAPER_LABELS["ats"]    = "ATS Direct (OSS)"
+    for src in _active_sources():
         count = sum(1 for r in raw_results if r.get("_source") == src)
         elapsed = timings.get(src, 0)
-        print(f"        {_SCRAPER_LABELS[src]:<20} {count:4d} raw  ({elapsed:.1f}s)")
+        label = _SCRAPER_LABELS.get(src, src)
+        print(f"        {label:<22} {count:4d} raw  ({elapsed:.1f}s)")
 
     # ── Stage 2: Normalize, filter, score ────────────────────────────────────
     show_stage(2, "Normalizing + filtering + scoring", total=3)
@@ -145,9 +148,23 @@ def run_email_only() -> int:
     return added
 
 
+def _active_sources() -> list[str]:
+    """Choose which scrapers to run based on what API keys are configured."""
+    import os
+    sources = ["workday", "email"]
+
+    if os.getenv("SERPAPI_API_KEY"):
+        sources += ["indeed", "linkedin", "serpapi"]
+    else:
+        # OSS scrapers when SerpApi is not available
+        sources += ["jobspy", "ats"]
+        logger.info("SERPAPI_API_KEY not set — using OSS scrapers (JobSpy + ATS direct APIs)")
+
+    return sources
+
+
 def _run_all_scrapers() -> tuple[list[dict], dict[str, float]]:
-    """Run all scrapers concurrently. Returns (tagged results, per-source elapsed times)."""
-    sources = ["indeed", "linkedin", "workday", "serpapi", "email"]
+    sources = _active_sources()
 
     def _timed(src: str) -> tuple[str, list[dict], float]:
         t0 = time.time()
@@ -165,6 +182,28 @@ def _run_all_scrapers() -> tuple[list[dict], dict[str, float]]:
 
 
 def _run_scraper(source: str) -> list[dict]:
+    # Lazy import OSS scrapers so missing packages don't break cloud mode
+    if source == "jobspy":
+        try:
+            from pipeline.discovery.scrapers import jobspy_scraper
+            results = jobspy_scraper.scrape()
+            return [dict(r, _source="jobspy") for r in results]
+        except ImportError:
+            logger.warning("python-jobspy not installed — run: pip install python-jobspy")
+            return []
+        except Exception as exc:
+            logger.error("JobSpy scraper failed: %s", exc)
+            return []
+
+    if source == "ats":
+        try:
+            from pipeline.discovery.scrapers import ats_scraper
+            results = ats_scraper.scrape()
+            return [dict(r, _source="ats") for r in results]
+        except Exception as exc:
+            logger.error("ATS scraper failed: %s", exc)
+            return []
+
     _map = {
         "indeed":   indeed_scraper,
         "linkedin": linkedin_scraper,

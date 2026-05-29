@@ -38,12 +38,19 @@ def generate(
     perplexity_context: str = "",
 ) -> Path:
     """
-    Call Claude to generate a people intel markdown file.
-    Returns the path to the saved .md file.
-
-    If perplexity_context is provided it is appended to the prompt so
-    Claude can ground its research in live data.
+    Generate people intel markdown. Uses Claude API if key is set, otherwise
+    falls back to OSS sources (edgartools, ddgs, Wikipedia) + local LLM.
     """
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not anthropic_key:
+        logger.info("ANTHROPIC_API_KEY not set — using OSS people intel")
+        try:
+            from pipeline.research.people_oss import generate as oss_gen
+            return oss_gen(jd.raw_text, company, role, slug, output_dir)
+        except ImportError:
+            logger.warning("people_oss dependencies not installed — people intel skipped")
+            return None
+
     prompt = build_people_intel_prompt(jd, company, role, slug)
 
     if perplexity_context:
