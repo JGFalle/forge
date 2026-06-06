@@ -17,23 +17,23 @@ from pipeline.tracker.tracker import (
     compute_next_action,
     load,
 )
+from utils.config import get
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Tier classification - mirrors CLAUDE.md
-_TIER1 = {"home depot", "the coca-cola company", "coca-cola", "americold", "delta air lines", "delta", "ups", "georgia-pacific"}
-_TIER2 = {"manhattan associates", "blue yonder", "greyorange", "symbotic", "autostore", "dematic", "o9 solutions", "kinaxis"}
-_TIER3 = {"ey", "deloitte", "accenture", "4flow", "maine pointe", "alixpartners"}
+# Tier classification, driven by config target_companies.tier1/2/3.
+def _tier_set(key: str) -> set[str]:
+    return {c.lower() for c in get(f"target_companies.{key}", [])}
 
 
 def _tier(company: str) -> str:
     c = company.lower()
-    if c in _TIER1:
+    if c in _tier_set("tier1"):
         return "1"
-    if c in _TIER2:
+    if c in _tier_set("tier2"):
         return "2"
-    if c in _TIER3:
+    if c in _tier_set("tier3"):
         return "3"
     return "—"
 
@@ -171,7 +171,7 @@ def display(data: dict) -> None:
     """Print digest to terminal."""
     width = 72
     print(f"\n{'═' * width}")
-    print(f"  PACE WEEKLY DIGEST                              {data['date']}")
+    print(f"  FORGE WEEKLY DIGEST                             {data['date']}")
     print(f"{'═' * width}")
 
     # Velocity
@@ -307,7 +307,7 @@ def save_html(data: dict, output_dir: Path) -> Path:
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PACE Digest — {data['date']}</title>
+<title>FORGE Digest — {data['date']}</title>
 <style>
   body {{ font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; margin: 0; padding: 32px; }}
   h1 {{ color: #93c5fd; font-size: 1.4rem; margin-bottom: 4px; }}
@@ -327,7 +327,7 @@ def save_html(data: dict, output_dir: Path) -> Path:
 </style>
 </head>
 <body>
-<h1>PACE Weekly Digest</h1>
+<h1>FORGE Weekly Digest</h1>
 <div class="sub">{data['date']} &nbsp;|&nbsp; {data['active_count']} active &nbsp;|&nbsp; {data['total']} total</div>
 
 <div class="grid">

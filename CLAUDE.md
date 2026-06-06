@@ -25,15 +25,24 @@ GitHub: https://github.com/JGFalle/forge
 ## Architecture Overview
 
 ```
-run.py                          ← single entry point
+run.py                          ← single entry point (thin CLI wrapper over core)
 config/config.yaml              ← ALL user-specific data lives here
 pipeline/
+  core.py                       ← process_jd(): the full JD→deliverables pipeline
+                                  as one callable (ProcessOptions/Result, no sys.exit)
+  bulk/                         ← --bulk: batch-process a Drive "Que" of JD PDFs
+    discovery.py                ← pure Que scan (company-from-folder)
+    lifecycle.py                ← collision-proof placement + crash-safe move
+    orchestrator.py             ← run_bulk(): wires discovery+lifecycle+process_jd
+    report.py                   ← scannable plan/results summary
   ingest/                       ← PDF extraction, JD parsing
   assessment/                   ← fit scorer (STRONG_FIT / STRETCH / HARD_PASS)
   research/                     ← tailoring JSON gen, people intel, viability, salary
     viability_checker.py        ← ghost job check (Perplexity or → viability_oss.py)
     salary_intel.py             ← salary data (Perplexity or → salary_oss.py)
     intel_generator.py          ← people intel (Claude or → people_oss.py)
+    exec_intel.py               ← deep company intel + council (Perplexity or → exec_intel_oss.py)
+    exec_intel_oss.py           ← OSS: ddgs search + oss_llm synthesis + council
     viability_oss.py            ← OSS: ddgs + feedparser + Wayback CDX
     salary_oss.py               ← OSS: BLS OES API + DOL H-1B LCA SQLite
     people_oss.py               ← OSS: edgartools + ddgs + Wikipedia + OSS LLM
@@ -45,8 +54,13 @@ pipeline/
     ats_checker.py              ← ATS compatibility scoring (no API needed)
   cover_letter/                 ← DOCX + plain text generation
   people_intel/                 ← markdown → PDF rendering, outreach extraction
-  output/                       ← exec summary PDF, folder structure
+  output/
+    resume_mods.py              ← "what the pipeline changed" PDF (+ optional intel sections)
+    exec_summary.py             ← deep-intel executive summary PDF (renders exec_intel)
+    folder_manager.py           ← application folder structure
   tracker/                      ← application tracker, dashboard, follow-ups
+    csv_sync.py                 ← two-way CSV ⇄ JSON ⇄ HTML reconcile (--sync)
+    tracker.py                  ← JSON store; in_que status, dedupe, backups
   discovery/
     runner.py                   ← orchestrates scrapers (routes cloud vs OSS)
     scrapers/
@@ -77,6 +91,12 @@ utils/
 
 **OSS LLM routing.** `utils/oss_llm.py` tries providers in order: Groq → Gemini → Ollama → Mistral. Council uses `generate_multi()` which calls all configured voices in parallel.
 
+**One pipeline body, two front-ends.** `pipeline/core.py::process_jd(jd_pdf, *, options)` is the single callable for the whole pipeline. The single-JD CLI passes `interactive=True` with prompt callbacks (`ProcessPrompts`); bulk passes `interactive=False` with fixed `AutoDecisions`. It never calls `sys.exit` — every abort returns a `ProcessResult`. This is also the seam a future web UI plugs into (see `docs/WEB_UI_PLAN.md`).
+
+**Bulk crash-safety.** `--bulk` processes a Drive `Que/<Company>/*.pdf` tree. The Que→Applications move is ordered establish → copy → verify → prune, and a `.forge_complete` sentinel (config `bulk.sentinel`) marks a finished destination so re-runs skip it. Ghost-HIGH / HARD_PASS JDs are left in the Que and surfaced loudly; one failed JD never aborts the batch; one tracker sync runs at the end.
+
+**Exec summary is opt-in.** The fast Resume Modifications PDF always renders. The deep Executive Summary (company intel + 3-model council) is a separate, prompted step — Perplexity in cloud mode, ddgs + `oss_llm` in OSS mode.
+
 ---
 
 ## Config Sections (config/config.yaml)
@@ -96,6 +116,22 @@ utils/
 | `oss` | preferred_llm, council_voices, h1b_lca_csv_path, ats_boards, hunter_api_key |
 | `gdrive` | enabled, mount_base, applications_folder |
 | `pipeline` | drop_timeout_seconds, gdrive_sync, open_output_folder |
+| `paths` | base_resume, inputs_dir, outputs_dir, tracker_file, tracker_csv |
+| `bulk` | que_folder (default "Que"), sentinel (default ".forge_complete") |
+
+---
+
+## CLI Commands
+
+| Command | What it does |
+|---|---|
+| `python run.py <jd.pdf>` | Full single-JD pipeline (→ `pipeline/core.process_jd`) |
+| `python run.py --bulk [--dry-run] [--bulk-limit N]` | Batch-process the Drive Que (dry-run = read-only plan) |
+| `python run.py --tracker` | Sync CSV/JSON/HTML, then open the dashboard |
+| `python run.py --sync` | Reconcile tracker CSV ⇄ JSON and regenerate CSV + HTML |
+| `python run.py --dedupe` | Find/merge duplicate (company, role) tracker entries (preview, then confirm) |
+| `python run.py --regen-exec-summary <app_folder>` | Regenerate deep exec summary + resume mods for an existing app |
+| `python run.py --regen-resume\|--regen-cover\|--regen-intel\|--council <app_folder>` | Regenerate one artifact |
 
 ---
 
