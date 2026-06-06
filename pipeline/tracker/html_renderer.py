@@ -393,7 +393,7 @@ def generate(output_path: Path | None = None) -> Path:
 </main>
 
 <footer>
-  PACE · Personal Applicant Competitive Engine &nbsp;·&nbsp; {today.strftime('%Y-%m-%d')}
+  FORGE · Fit-scored Opportunity Research, Generation &amp; Evaluation &nbsp;·&nbsp; {today.strftime('%Y-%m-%d')}
 </footer>
 
 <script>

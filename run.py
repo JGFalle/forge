@@ -62,6 +62,8 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--tailor", metavar="JSON", help="Apply a tailoring JSON directly (skips ingest)")
     group.add_argument("--intel", metavar="MD", help="Render a people intel markdown to PDF")
     group.add_argument("--tracker", action="store_true", help="Show pipeline dashboard")
+    group.add_argument("--sync", action="store_true", help="Reconcile the tracker CSV (Excel) and JSON, then regenerate CSV + HTML")
+    group.add_argument("--dedupe", action="store_true", help="Find and resolve duplicate tracker entries (preview by default; confirm to apply)")
     group.add_argument("--prep", nargs=2, metavar=("COMPANY", "ROLE"), help="Generate interview prep brief")
     group.add_argument("--digest", action="store_true", help="Show weekly pipeline digest")
     group.add_argument(
@@ -180,12 +182,30 @@ def main() -> None:
         return
 
     # Tracker / pipeline view
+    # Tracker sync (CSV ⇄ JSON ⇄ HTML)
+    if args.sync:
+        from pipeline.tracker.csv_sync import sync as sync_tracker
+        result = sync_tracker()
+        if result["changed"] or result["added"]:
+            print(f"Imported from CSV: {result['changed']} updated, {result['added']} added")
+        for w in result["warnings"]:
+            print(f"  ⚠  {w}")
+        print(f"CSV:  {result['csv']}")
+        print(f"HTML: {result['html']}")
+        return
+
     if args.tracker:
         import subprocess
+        from pipeline.tracker.csv_sync import sync as sync_tracker
         from pipeline.tracker.tracker import display_pipeline
-        from pipeline.tracker.html_renderer import generate
+        # Fold in any Excel edits first, then render the dashboard from truth.
+        result = sync_tracker()
+        if result["changed"] or result["added"]:
+            print(f"Imported from CSV: {result['changed']} updated, {result['added']} added")
+        for w in result["warnings"]:
+            print(f"  ⚠  {w}")
         display_pipeline()
-        html_path = generate()
+        html_path = result["html"]
         print(f"Opening dashboard: {html_path}")
         subprocess.run(["open", str(html_path)], check=False)
         return
@@ -200,6 +220,33 @@ def main() -> None:
                 print(f"  {u['company']} / {u['role']} — {u['days_silent']}d silent (was: {u['status']})")
         else:
             print("\nNo stale applications found (threshold: 30 days).")
+        return
+
+    # Dedupe tracker entries
+    if args.dedupe:
+        from pipeline.tracker.tracker import dedupe
+        preview = dedupe(apply=False)
+        if not preview["groups"]:
+            print("\nNo duplicate (company, role) entries found.")
+            return
+        print(f"\nFound {len(preview['groups'])} duplicate group(s) "
+              f"({preview['total_before']} entries -> {preview['total_after']}):")
+        for g in preview["groups"]:
+            print(f"  [{g['action'].upper()}] {g['company']} / {g['role']} "
+                  f"— {g['count']} copies, remove {g['removed']}, keep status '{g['kept_status']}'")
+            for c in g["conflicts"]:
+                print(f"      ⚠  {c}")
+        answer = input("\nApply these changes? A backup is saved first. [y/N] ").strip().lower()
+        if answer not in ("y", "yes"):
+            print("Aborted. Nothing was written.")
+            return
+        result = dedupe(apply=True)
+        from pipeline.tracker.csv_sync import sync as sync_tracker
+        sync_tracker()
+        print(f"\nDedupe applied: {result['total_before']} -> {result['total_after']} entries "
+              f"({result['merged_groups']} merged, {result['deleted_groups']} collapsed).")
+        print(f"Backup: {result['backup']}")
+        print("CSV + HTML regenerated.")
         return
 
     # Follow-up draft

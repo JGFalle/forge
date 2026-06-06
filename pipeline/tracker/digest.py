@@ -171,7 +171,7 @@ def display(data: dict) -> None:
     """Print digest to terminal."""
     width = 72
     print(f"\n{'═' * width}")
-    print(f"  PACE WEEKLY DIGEST                              {data['date']}")
+    print(f"  FORGE WEEKLY DIGEST                             {data['date']}")
     print(f"{'═' * width}")
 
     # Velocity
@@ -307,7 +307,7 @@ def save_html(data: dict, output_dir: Path) -> Path:
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PACE Digest — {data['date']}</title>
+<title>FORGE Digest — {data['date']}</title>
 <style>
   body {{ font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; margin: 0; padding: 32px; }}
   h1 {{ color: #93c5fd; font-size: 1.4rem; margin-bottom: 4px; }}
@@ -327,7 +327,7 @@ def save_html(data: dict, output_dir: Path) -> Path:
 </style>
 </head>
 <body>
-<h1>PACE Weekly Digest</h1>
+<h1>FORGE Weekly Digest</h1>
 <div class="sub">{data['date']} &nbsp;|&nbsp; {data['active_count']} active &nbsp;|&nbsp; {data['total']} total</div>
 
 <div class="grid">
