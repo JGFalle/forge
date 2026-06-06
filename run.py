@@ -96,6 +96,11 @@ def parse_args() -> argparse.Namespace:
         help="Run job discovery scrapers, update tracker, send digest email",
     )
     group.add_argument(
+        "--bulk",
+        action="store_true",
+        help="Batch-process every company/JD in the Drive Que (use --dry-run for a read-only plan)",
+    )
+    group.add_argument(
         "--email-check",
         action="store_true",
         help="Quick email-only check: read Gmail alerts, append new jobs to tracker (no scraping, no email digest)",
@@ -105,6 +110,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--role", help="Role title (required when using JD PDF without embedded detection)")
     p.add_argument("--output-dir", default=None, help="Override output directory")
     p.add_argument("--dry-run", action="store_true", help="Parse and validate; do not write files")
+    p.add_argument("--bulk-limit", type=int, default=None, metavar="N", help="Bulk: process at most N companies")
     p.add_argument("--debug", action="store_true", help="Enable debug logging")
     p.add_argument(
         "--offer-amount",
@@ -327,6 +333,18 @@ def main() -> None:
             print(f"  Digest email sent to {_cfg('discovery.digest_to', '')}")
         elif new_count > 0:
             print("  (email skipped — check GMAIL_APP_PASSWORD in .env)")
+        return
+
+    # Bulk: batch-process the Drive Que
+    if args.bulk:
+        from pipeline.bulk.orchestrator import run_bulk
+        from pipeline.bulk.report import format_report
+        try:
+            report = run_bulk(dry_run=args.dry_run, limit=args.bulk_limit)
+        except FileNotFoundError as exc:
+            logger.error("%s", exc)
+            sys.exit(1)
+        print(format_report(report))
         return
 
     # Email-only check (launchd 15-min interval)
