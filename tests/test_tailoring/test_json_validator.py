@@ -19,8 +19,8 @@ def _full() -> dict:
         "competencies": ["Row 1", "Row 2", "Row 3", "Row 4"],
         "experience_modifications": [
             {
-                "role_identifier": "jmrs",
-                "company": "JMRS Consulting LLC",
+                "role_identifier": "current_role",
+                "company": "Your Current Company",
                 "replacement_lead_in": "Lead-in sentence.",
                 "replacement_bullets": ["Bullet 1", "Bullet 2"],
             }

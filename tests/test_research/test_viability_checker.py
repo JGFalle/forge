@@ -38,12 +38,15 @@ def test_should_block_skipped():
     assert should_block(_skipped()) is False
 
 
-# check - no Perplexity key → skipped
+# check - no Perplexity key → falls back to the OSS backend
 
-def test_check_skips_without_perplexity_key():
+def test_check_falls_back_to_oss_without_perplexity_key():
+    oss_result = {"skipped": False, "ghost_risk": "low", "source": "oss"}
     with patch.dict("os.environ", {}, clear=True):
-        result = check("Acme Corp", "Director of Operations")
-    assert result["skipped"] is True
+        with patch("pipeline.research.viability_oss.check", return_value=oss_result) as oss:
+            result = check("Acme Corp", "Director of Operations")
+    oss.assert_called_once()
+    assert result.get("source") == "oss"
 
 
 # check, Perplexity available, haiku structures result

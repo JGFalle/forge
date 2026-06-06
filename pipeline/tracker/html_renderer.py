@@ -35,6 +35,7 @@ _STATUS_CLASS = {
     "withdrawn": "status-closed",
 }
 _STATUS_LABEL = {
+    "in_que": "In Que",
     "prompted": "Prompted",
     "applied": "Applied",
     "phone_screen": "Phone Screen",
