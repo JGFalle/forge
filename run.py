@@ -717,11 +717,11 @@ def main() -> None:
     display_gap(gap)
     save_gap_report(gap, company, role, app_folder / "research")
 
-    # Stage 9b: Executive summary PDF → research/
-    from pipeline.output.exec_summary import generate as gen_exec_summary
-    logger.info("Stage 9b: Generating executive summary")
-    show_stage(11, "Executive Summary PDF")
-    exec_summary_path = gen_exec_summary(
+    # Stage 9b: Resume Modifications PDF → research/ (fast, no API calls)
+    from pipeline.output.resume_mods import generate as gen_resume_mods
+    logger.info("Stage 9b: Generating resume modifications PDF")
+    show_stage(11, "Resume Modifications PDF")
+    resume_mods_path = gen_resume_mods(
         jd=jd,
         company=company,
         role=role,
@@ -730,6 +730,7 @@ def main() -> None:
         output_dir=app_folder / "research",
         slug=slug,
     )
+    exec_summary_path = None  # populated below only if the user opts into deep intel
 
     # Stage 10: Tracker (upsert, no duplicate if pipeline reruns)
     from pipeline.tracker.tracker import add_entry
@@ -764,7 +765,7 @@ def main() -> None:
         if named_cover:
             print(f"                {named_cover.name}")
     print(f"  People intel: {intel_pdf_path.name}")
-    print(f"  Exec summary: {exec_summary_path.name}")
+    print(f"  Resume mods:  {resume_mods_path.name}")
     print(f"  Gap coverage: {gap['coverage_pct']}%")
     if resume_path and ats_result:
         print(f"  ATS score:    {ats_result['score']}/100  [{ats_result['grade']}]")
@@ -772,13 +773,40 @@ def main() -> None:
         print(f"  Deadline:     {jd.apply_by_date}")
     print(f"{'='*60}")
 
+    # Optional: full Executive Summary (deep company intel + council). Off by
+    # default — it adds research calls (Perplexity, or ddgs + local LLM in OSS).
+    try:
+        want_exec = _tty_input(
+            "\nGenerate full Executive Summary — deep intel + interview prep? (y/N): "
+        ).lower()
+    except (EOFError, OSError):
+        want_exec = "n"
+    if want_exec == "y":
+        from pipeline.research.exec_intel import fetch_deep_intel, run_intel_council
+        from pipeline.output.exec_summary import generate as gen_exec_summary
+        intel_raw = fetch_deep_intel(company, role, jd.raw_text)
+        intel_result = run_intel_council(intel_raw, jd.raw_text, company, role)
+        exec_summary_path = gen_exec_summary(
+            jd=jd, company=company, role=role,
+            salary_intel=salary_intel, intel_result=intel_result,
+            output_dir=app_folder / "research", slug=slug,
+        )
+        # Re-render resume mods with the intel reference sections populated.
+        resume_mods_path = gen_resume_mods(
+            jd=jd, company=company, role=role,
+            tailoring_data=tailoring_data, salary_intel=salary_intel,
+            output_dir=app_folder / "research", slug=slug,
+            exec_intel_result=intel_result,
+        )
+        print(f"  Exec summary: {exec_summary_path.name}")
+
     try:
         answer = _tty_input("\nCopy deliverables to Google Drive? (y/n): ").lower()
     except (EOFError, OSError):
         answer = "n"
 
     if answer == "y":
-        _copy_to_gdrive(company, role, resume_path, named_resume, cover_path, named_cover, intel_pdf_path, cover_txt_path, exec_summary_path, council_path=council_path, gdrive_target=args.gdrive_target or "")
+        _copy_to_gdrive(company, role, resume_path, named_resume, cover_path, named_cover, intel_pdf_path, cover_txt_path, exec_summary_path, council_path=council_path, resume_mods_path=resume_mods_path, gdrive_target=args.gdrive_target or "")
 
     # Prompt to mark application as submitted
     try:
@@ -803,6 +831,7 @@ def _copy_to_gdrive(
     cover_txt_path=None,
     exec_summary_path=None,
     council_path=None,
+    resume_mods_path=None,
     gdrive_target: str = "",
 ) -> None:
     import shutil
@@ -829,8 +858,8 @@ def _copy_to_gdrive(
     final_files = [resume_path, cover_path]
     # 02_Draft Documents, slugged copies + plain-text cover letter
     draft_files = [named_resume, named_cover, cover_txt_path]
-    # 03_Research, intel PDF, exec summary, council report
-    research_files = [intel_pdf_path, exec_summary_path, council_path]
+    # 03_Research, intel PDF, resume mods, exec summary, council report
+    research_files = [intel_pdf_path, resume_mods_path, exec_summary_path, council_path]
 
     copied: list[str] = []
     for src, dest_dir in (
