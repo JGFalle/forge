@@ -229,6 +229,9 @@ paths:
   inputs_dir: inputs/
   outputs_dir: outputs/
   tracker_file: outputs/application_tracker.json
+  # Excel-editable view of the tracker. `--sync` reconciles this CSV with the
+  # JSON above (JSON is source of truth) and regenerates the HTML dashboard.
+  tracker_csv: outputs/application_tracker.csv
 
 
 # ── Google Drive (optional) ───────────────────────────────────────────────────
@@ -310,3 +313,16 @@ pipeline:
   gdrive_sync: false
   # Open the output folder in Finder/Explorer when the pipeline finishes
   open_output_folder: true
+
+
+# ── Bulk Mode ──────────────────────────────────────────────────────────────────
+# `run.py --bulk` batch-processes every company/JD dropped into a "Que" folder
+# inside your GDrive applications folder. Each immediate subfolder is one company
+# (name taken from the folder, never parsed); each contains one or more JD PDFs.
+# Requires gdrive.enabled and a configured mount_base/applications_folder above.
+bulk:
+  # Name of the queue folder under gdrive.applications_folder.
+  que_folder: "Que"
+  # Sentinel filename written into a destination once ALL deliverables land.
+  # Its presence makes a re-run skip that JD (crash-safe idempotency marker).
+  sentinel: ".forge_complete"
