@@ -17,23 +17,23 @@ from pipeline.tracker.tracker import (
     compute_next_action,
     load,
 )
+from utils.config import get
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Tier classification - mirrors CLAUDE.md
-_TIER1 = {"home depot", "the coca-cola company", "coca-cola", "americold", "delta air lines", "delta", "ups", "georgia-pacific"}
-_TIER2 = {"manhattan associates", "blue yonder", "greyorange", "symbotic", "autostore", "dematic", "o9 solutions", "kinaxis"}
-_TIER3 = {"ey", "deloitte", "accenture", "4flow", "maine pointe", "alixpartners"}
+# Tier classification, driven by config target_companies.tier1/2/3.
+def _tier_set(key: str) -> set[str]:
+    return {c.lower() for c in get(f"target_companies.{key}", [])}
 
 
 def _tier(company: str) -> str:
     c = company.lower()
-    if c in _TIER1:
+    if c in _tier_set("tier1"):
         return "1"
-    if c in _TIER2:
+    if c in _tier_set("tier2"):
         return "2"
-    if c in _TIER3:
+    if c in _tier_set("tier3"):
         return "3"
     return "—"
 

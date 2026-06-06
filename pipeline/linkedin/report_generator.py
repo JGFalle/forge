@@ -157,7 +157,7 @@ def _experience_section(result: dict, profile: dict) -> str:
     from utils.config import get
     history = get("career_history", [])
     role_map = [
-        (r.get("id", ""), f"{r.get('company', '')} — {r.get('title', '')}")
+        (r.get("id", ""), f"{r.get('company', '')} — {r.get('title', '')}", r.get("company", ""))
         for r in history[:3]
     ]
 
@@ -168,18 +168,30 @@ def _experience_section(result: dict, profile: dict) -> str:
         if pos["description"]:
             current_by_company[key] = pos["description"]
 
-    for key, label in role_map:
+    def _match_current(company: str) -> str:
+        """Match a config role's company to a LinkedIn position description.
+
+        Exact (case-insensitive) match first, then a substring match either way
+        so a config company like "Acme Corp LLC" lines up with an "Acme Corp"
+        position (or vice versa). No hardcoded company names — config-driven.
+        """
+        c = (company or "").lower().strip()
+        if not c:
+            return ""
+        if c in current_by_company:
+            return current_by_company[c]
+        for pos_company, desc in current_by_company.items():
+            if c in pos_company or pos_company in c:
+                return desc
+        return ""
+
+    for key, label, company in role_map:
         role_data = exp.get(key, {})
         recommended_text = role_data.get("recommended", "")
         note = role_data.get("positioning_note", "")
         rec_len = len(recommended_text)
 
-        current_desc = ""
-        if "jmrs" in key:
-            current_desc = current_by_company.get("jmrs consulting llc", "") or current_by_company.get("jmrs", "")
-        else:
-            current_desc = current_by_company.get("ryerson", "")
-
+        current_desc = _match_current(company)
         cur_len = len(current_desc)
 
         current_block = (
