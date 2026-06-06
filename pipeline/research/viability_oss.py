@@ -124,7 +124,7 @@ def _check_news(company: str) -> tuple[list[str], list[str], int]:
                 time.sleep(0.5)
 
     except ImportError:
-        logger.debug("ddgs not installed — skipping news search")
+        logger.debug("ddgs not installed; skipping news search")
     except Exception as exc:
         logger.debug("ddgs news search failed: %s", exc)
 
@@ -144,7 +144,7 @@ def _check_news(company: str) -> tuple[list[str], list[str], int]:
                     break
             time.sleep(0.8)
     except ImportError:
-        logger.debug("feedparser not installed — skipping RSS check")
+        logger.debug("feedparser not installed; skipping RSS check")
     except Exception as exc:
         logger.debug("feedparser RSS check failed: %s", exc)
 
@@ -174,16 +174,16 @@ def _check_posting_age(job_url: str) -> tuple[str, int]:
 
         if age_days > 120:
             return (
-                f"Wayback Machine: posting first crawled {first_seen} ({age_days} days ago — stale signal)",
+                f"Wayback Machine: posting first crawled {first_seen} ({age_days} days ago, stale signal)",
                 35,
             )
         if age_days > 60:
             return (
-                f"Wayback Machine: posting first crawled {first_seen} ({age_days} days old — monitor)",
+                f"Wayback Machine: posting first crawled {first_seen} ({age_days} days old, monitor)",
                 15,
             )
         return (
-            f"Wayback Machine: posting first crawled {first_seen} ({age_days} days ago — fresh)",
+            f"Wayback Machine: posting first crawled {first_seen} ({age_days} days ago, fresh)",
             -5,
         )
 

@@ -122,7 +122,7 @@ def parse_args() -> argparse.Namespace:
         "--context",
         default="",
         metavar="TEXT",
-        help="Pre-supply application context (gut-check answers or override reason) — skips interactive prompt",
+        help="Pre-supply application context (gut-check answers or override reason); skips interactive prompt",
     )
     p.add_argument(
         "--gdrive-target",
@@ -224,7 +224,7 @@ def main() -> None:
         if updated:
             print(f"\nMarked {len(updated)} application(s) as ghosted:")
             for u in updated:
-                print(f"  {u['company']} / {u['role']} — {u['days_silent']}d silent (was: {u['status']})")
+                print(f"  {u['company']} / {u['role']}: {u['days_silent']}d silent (was: {u['status']})")
         else:
             print("\nNo stale applications found (threshold: 30 days).")
         return
@@ -240,7 +240,7 @@ def main() -> None:
               f"({preview['total_before']} entries -> {preview['total_after']}):")
         for g in preview["groups"]:
             print(f"  [{g['action'].upper()}] {g['company']} / {g['role']} "
-                  f"— {g['count']} copies, remove {g['removed']}, keep status '{g['kept_status']}'")
+                  f"({g['count']} copies, remove {g['removed']}, keep status '{g['kept_status']}')")
             for c in g["conflicts"]:
                 print(f"      ⚠  {c}")
         answer = input("\nApply these changes? A backup is saved first. [y/N] ").strip().lower()
@@ -332,7 +332,7 @@ def main() -> None:
             from utils.config import get as _cfg
             print(f"  Digest email sent to {_cfg('discovery.digest_to', '')}")
         elif new_count > 0:
-            print("  (email skipped — check GMAIL_APP_PASSWORD in .env)")
+            print("  (email skipped; check GMAIL_APP_PASSWORD in .env)")
         return
 
     # Bulk: batch-process the Drive Que
@@ -529,7 +529,7 @@ def _gdrive_copy_prompt() -> bool:
 
 
 def _submit_prompt(company: str, role: str) -> None:
-    """'Did you submit?' prompt \u2014 updates tracker status to applied."""
+    """'Did you submit?' prompt; updates tracker status to applied."""
     try:
         submitted = _tty_input("\nDid you submit this application? Mark as applied? (y/n): ").lower()
         if submitted == "y":
@@ -645,7 +645,7 @@ def _regen_intel(app_folder: Path) -> None:
     _, _, company, role, slug = _load_regen_context(app_folder)
     jd = _regen_jd(app_folder)
 
-    print(f"\nRegenerating people intel — {company} / {role}")
+    print(f"\nRegenerating people intel: {company} / {role}")
     perplexity_context = fetch_company_intel(company, role)
     if perplexity_context:
         print(f"  {len(perplexity_context):,} chars of live intel fetched")
@@ -675,7 +675,7 @@ def _regen_cover(app_folder: Path) -> None:
     td, tailoring_path, company, role, slug = _load_regen_context(app_folder)
     jd = _regen_jd(app_folder)
 
-    print(f"\nRegenerating cover letter — {company} / {role}")
+    print(f"\nRegenerating cover letter: {company} / {role}")
     cover_path = run_cover(tailoring_path, app_folder / "cover_letter")
     if cover_path:
         named_cover = cover_path.parent / _named_cover(slug)
@@ -700,7 +700,7 @@ def _regen_resume(app_folder: Path) -> None:
 
     _, tailoring_path, company, role, slug = _load_regen_context(app_folder)
 
-    print(f"\nRegenerating resume — {company} / {role}")
+    print(f"\nRegenerating resume: {company} / {role}")
     resume_path = run_tailor(tailoring_path, app_folder / "resume")
     if resume_path:
         named_resume = resume_path.parent / _named_resume(slug)
@@ -726,7 +726,7 @@ def _regen_exec_summary(app_folder: Path) -> None:
     td, _tailoring_path, company, role, slug = _load_regen_context(app_folder)
     jd = _regen_jd(app_folder)
 
-    print(f"\nRegenerating executive summary — {company} / {role}")
+    print(f"\nRegenerating executive summary: {company} / {role}")
     salary_intel = {}
     if not jd.salary_range or jd.salary_range in ("Not listed", "Not specified"):
         salary_intel = fetch_salary_intel(company, role, jd.location or "")

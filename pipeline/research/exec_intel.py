@@ -1,15 +1,15 @@
 """Deep company and role intelligence for the Executive Summary.
 
 Two phases:
-1. Perplexity phase — 5 parallel queries covering strategy, role context,
+1. Perplexity: 5 parallel queries covering strategy, role context,
    financials, recent news, and culture/talent reputation.
-2. Council phase — 3 panel models each independently review all Perplexity
-   findings against the JD, then the aggregator synthesizes consensus and
+2. Council: 3 panel models each independently review all Perplexity
+   findings against the JD; the aggregator synthesizes consensus and
    divergence into a structured brief.
 
-When PERPLEXITY_API_KEY is absent, both phases transparently fall back to the
-OSS backend (ddgs web search + local LLM via utils.oss_llm). The OSS path
-returns the exact same shapes, so exec_summary / resume_mods render identically.
+When PERPLEXITY_API_KEY is absent, both phases fall back to the OSS backend
+(ddgs web search + local LLM via utils.oss_llm). The OSS path returns the
+same shapes, so exec_summary and resume_mods render identically.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ INTEL_LABELS = {
     "culture_talent": "CULTURE & TALENT REPUTATION",
 }
 
-# ── Perplexity query templates ────────────────────────────────────────────────
+# Perplexity query templates
 
 _QUERIES = {
     "strategy": (
@@ -81,10 +81,10 @@ _QUERIES = {
     ),
 }
 
-# ── Prompt fragments built from config ────────────────────────────────────────
+# Prompt fragments built from config
 
 def _seniority() -> str:
-    """Target seniority descriptor, from config.identity.target_levels."""
+    """Target seniority string from config.identity.target_levels."""
     levels = get("identity", {}).get("target_levels", [])
     if levels:
         return " / ".join(levels)
@@ -92,7 +92,7 @@ def _seniority() -> str:
 
 
 def candidate_context() -> str:
-    """Build the CANDIDATE CONTEXT block from config (no hardcoded personal data)."""
+    """Build the CANDIDATE CONTEXT block from config."""
     identity = get("identity", {})
     primary = identity.get("primary", "")
     history = get("career_history", [])
@@ -112,11 +112,11 @@ def candidate_context() -> str:
     lines.append(f"- Targeting: {_seniority()} level")
 
     if not lines:
-        return "- (Candidate context not configured — fill in config.yaml identity / career_history / key_achievements)"
+        return "- (Candidate context not configured; fill in config.yaml identity / career_history / key_achievements)"
     return "\n".join(lines)
 
 
-# ── Panel prompt ──────────────────────────────────────────────────────────────
+# Panel prompt
 
 _PANEL_PROMPT = """\
 You are preparing a comprehensive intelligence brief for a {seniority} candidate \
@@ -162,7 +162,7 @@ competitive context, industry dynamics, timing considerations.
 
 Under 500 words. Be direct and specific."""
 
-# ── Aggregator prompt ─────────────────────────────────────────────────────────
+# Aggregator prompt
 
 _AGGREGATOR_PROMPT = """\
 You are synthesizing three independent intelligence reviews about {role} at {company}.
@@ -193,7 +193,7 @@ Produce a JSON object with exactly these keys:
 Return ONLY valid JSON. No markdown fences."""
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def _is_error(text: str) -> bool:
     return not text or text.startswith("[ERROR:")
@@ -228,7 +228,7 @@ def _query_panel(client, model: str, prompt: str, max_tokens: int = 1000) -> tup
         msg = str(exc)
         logger.warning("Intel council %s failed: %s", model, msg)
         if "deprecated" in msg.lower() or "invalid_model" in msg.lower():
-            print(f"\n  ⚠  INTEL COUNCIL — model '{model}' deprecated. Update PANEL_MODELS in exec_intel.py\n")
+            print(f"\n  INTEL COUNCIL: model '{model}' deprecated. Update PANEL_MODELS in exec_intel.py\n")
         return model, f"[ERROR: {exc}]"
 
 
@@ -267,7 +267,7 @@ def infer_function(role: str) -> str:
     return "operations and strategy"
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
+# Public API
 
 def fetch_deep_intel(
     company: str,
@@ -282,12 +282,12 @@ def fetch_deep_intel(
     """
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.info("PERPLEXITY_API_KEY not set — using OSS deep intel (ddgs + local LLM)")
+        logger.info("PERPLEXITY_API_KEY not set; using OSS deep intel (ddgs + local LLM)")
         try:
             from pipeline.research.exec_intel_oss import fetch_deep_intel as oss_fetch
             return oss_fetch(company, role, jd_text, function_area)
         except ImportError:
-            logger.debug("exec_intel_oss dependencies missing — exec intel skipped")
+            logger.debug("exec_intel_oss dependencies missing; exec intel skipped")
             return {}
 
     try:
@@ -391,7 +391,7 @@ def run_intel_council(
     _, agg_raw = _query_panel(client, AGGREGATOR_MODEL, agg_prompt, max_tokens=2500)
     if _is_error(agg_raw):
         errors.append(f"Aggregator {AGGREGATOR_MODEL}: {agg_raw}")
-        print(f"  ⚠  Intel council aggregator failed — trying fallback ({AGGREGATOR_FALLBACK})")
+        print(f"  Intel council aggregator failed; trying fallback ({AGGREGATOR_FALLBACK})")
         _, agg_raw = _query_panel(client, AGGREGATOR_FALLBACK, agg_prompt, max_tokens=2500)
 
     agg = parse_json(agg_raw)

@@ -1,15 +1,14 @@
 """Two-way sync between the Excel-editable CSV and the canonical tracker JSON.
 
 The JSON (application_tracker.json) is the source of truth. The CSV is a flat,
-spreadsheet-friendly view of the scalar fields. Nested data (contacts, history)
+spreadsheet-friendly view of scalar fields. Nested data (contacts, history)
 lives only in the JSON and is preserved across imports.
 
 Flow:
-  - export_csv()  JSON  ->  CSV   (regenerate the spreadsheet from the truth)
-  - import_csv()  CSV   ->  JSON  (fold spreadsheet edits back into the truth)
-  - sync()        reconciles both: if the CSV was edited more recently than the
-                  JSON, import first; then always re-export CSV + HTML so all
-                  three files agree.
+  - export_csv()  JSON -> CSV   (regenerate the spreadsheet from JSON)
+  - import_csv()  CSV -> JSON   (fold spreadsheet edits back into the truth)
+  - sync()        if the CSV is newer, import first; then always re-export
+                  CSV + HTML so all three files agree.
 """
 
 from __future__ import annotations
@@ -33,9 +32,9 @@ from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-# (CSV column header, JSON key) — order defines the spreadsheet column order.
-# "Date Updated" maps to status_updated: the date the status last changed. It is
-# auto-maintained (not user-editable) and stays put once a row is closed/rejected.
+# (CSV column header, JSON key): order defines the spreadsheet column order.
+# "Date Updated" maps to status_updated. It is auto-maintained (not editable)
+# and stays put once a row is closed/rejected.
 _COLUMNS = [
     ("Company", "company"),
     ("Role", "role"),
@@ -54,7 +53,7 @@ _COLUMNS = [
     ("App Folder", "app_folder"),
 ]
 
-# Fields a user may edit in Excel and have flow back into the JSON.
+# Fields a user can edit in Excel and have flow back into the JSON.
 _EDITABLE = {
     "status",
     "fit_verdict",
@@ -91,12 +90,10 @@ def _to_canonical_status(raw: str, current):
 def _match(entries: list[dict], company: str, role: str, claimed: set[int]) -> dict | None:
     """Find the next unclaimed entry by company + role.
 
-    Matching is tolerant of case and surrounding whitespace (some roles carry
-    trailing spaces from JD parsing). The tracker keys on company + role but the
-    data can contain duplicate pairs (the same role applied to twice). Claiming
-    each matched entry maps the Nth duplicate CSV row to the Nth duplicate JSON
-    entry, so a re-export/re-import round-trips cleanly instead of collapsing
-    duplicates onto one record.
+    Case and whitespace tolerant (some roles carry trailing spaces from JD
+    parsing). Claiming each matched entry maps the Nth duplicate CSV row to the
+    Nth duplicate JSON entry, so a re-export/re-import round-trips correctly
+    instead of collapsing duplicates onto one record.
     """
     key = (_norm(company), _norm(role))
     for e in entries:
@@ -180,11 +177,11 @@ def _new_entry(values: dict, today: str) -> dict:
 
 
 def import_csv(path: Path | None = None) -> dict:
-    """Fold spreadsheet edits back into the JSON. Returns a summary dict.
+    """Fold spreadsheet edits back into the JSON; returns a summary dict.
 
-    Matching is by company + role (case-insensitive), the same key the rest of
-    the tracker uses. Rows missing from the CSV are left untouched in the JSON
-    (Excel users delete rows freely; silent deletion would lose data).
+    Matches by company + role (case-insensitive). Rows missing from the CSV
+    are left untouched in the JSON (Excel users delete rows freely; silent
+    deletion would lose data).
     """
     src = path or _csv_path()
     summary = {"changed": 0, "added": 0, "warnings": []}
@@ -259,10 +256,9 @@ def import_csv(path: Path | None = None) -> dict:
 def sync() -> dict:
     """Reconcile CSV and JSON, then regenerate CSV + HTML so all three agree.
 
-    If the CSV is newer than the JSON, the user edited it in Excel: import those
-    edits first. Then always re-export the CSV and HTML from the (now current)
-    JSON, and stamp the JSON as newest so the next sync doesn't re-import a file
-    it just wrote.
+    If the CSV is newer than the JSON, import edits first. Then always
+    re-export the CSV and HTML from the current JSON, and stamp the JSON as
+    newest so the next call doesn't re-import the file we just wrote.
     """
     json_path = _json_path()
     csv_path = _csv_path()
@@ -286,8 +282,7 @@ def sync() -> dict:
 
     result["csv"] = export_csv(csv_path)
     result["html"] = generate_html()
-    # Make the JSON the most-recently-touched file so a no-op sync after this
-    # exports rather than re-importing the CSV we just wrote.
+    # touch the JSON so the next sync doesn't re-import the CSV we just wrote
     if json_path.exists():
         os.utime(json_path, None)
     return result

@@ -1,4 +1,4 @@
-"""Tests for tracker.dedupe — duplicate detection, deletion, and merging."""
+"""Tests for tracker.dedupe (duplicate detection, deletion, and merging)."""
 
 import pytest
 

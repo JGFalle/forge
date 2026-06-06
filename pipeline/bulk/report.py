@@ -70,7 +70,7 @@ class BulkReport:
     def add(self, result: JDResult) -> None:
         self.results.append(result)
 
-    # ── Counts ────────────────────────────────────────────────────────────────
+    # Counts
     def _count(self, kind: str) -> int:
         return sum(1 for r in self.results if r.kind == kind)
 
@@ -133,7 +133,7 @@ def _company_order(report: BulkReport) -> list[str]:
 def format_report(report: BulkReport) -> str:
     """Render a scannable text block for the dry-run plan or live results."""
     lines: list[str] = []
-    header = "FORGE BULK — DRY RUN (plan only)" if report.dry_run else "FORGE BULK — RESULTS"
+    header = "FORGE BULK: DRY RUN (plan only)" if report.dry_run else "FORGE BULK: RESULTS"
     lines.append(header)
     lines.append("─" * 60)
     if report.que_dir is not None:
@@ -148,7 +148,7 @@ def format_report(report: BulkReport) -> str:
         lines.append(company)
         for r in (x for x in report.results if x.company == company):
             role = r.role or "(role unparsed)"
-            dest = r.dest_dir.name if r.dest_dir is not None else "—"
+            dest = r.dest_dir.name if r.dest_dir is not None else "(none)"
             shape = "multi" if r.subfoldered else "single"
             if report.dry_run:
                 skip_note = "  would-skip (already present)" if r.would_skip else ""
@@ -204,7 +204,7 @@ def format_report(report: BulkReport) -> str:
         for r in loud:
             reason = _SKIP_REASON_TEXT.get(r.kind, r.label)
             lines.append(f"  - {r.company} / {r.role or r.jd_name}")
-            lines.append(f"      reason: {reason} — left in Que (not processed)")
+            lines.append(f"      reason: {reason}, left in Que (not processed)")
 
     failures = report.failures
     if failures:
@@ -216,7 +216,7 @@ def format_report(report: BulkReport) -> str:
     present = report.present_skips
     if present:
         lines.append("")
-        lines.append(f"Already present (benign — left in Que, nothing to do) ({len(present)}):")
+        lines.append(f"Already present (benign, left in Que, nothing to do) ({len(present)}):")
         for r in present:
             lines.append(f"  - {r.company} / {r.role or r.jd_name}")
 

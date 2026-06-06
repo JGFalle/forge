@@ -1,4 +1,4 @@
-"""Orchestrator tests — bulk batch wiring against tmp_path.
+"""Orchestrator tests: bulk batch wiring against tmp_path.
 
 `process_jd` is MONKEYPATCHED in every test so NO API is called and NO real
 Drive is touched. The Que and Applications dirs live under tmp_path. The tracker
@@ -152,7 +152,7 @@ def test_live_success_writes_in_que_via_process_jd_not_orchestrator(
 
     The orchestrator no longer calls add_entry itself. We assert (1) the
     orchestrator passes tracker_status='in_que' into process_jd, and (2) the only
-    tracker entry written has status 'in_que' — coming from that single threaded
+    tracker entry written has status 'in_que', coming from that single threaded
     write, not a post-hoc orchestrator add.
     """
     _make_company(que, "HP", ["hp.pdf"])
@@ -223,7 +223,7 @@ def test_dry_run_writes_nothing(patch_que, que, role_map, monkeypatch):
     assert rep.planned == 3
     assert rep.sync_ran is False
 
-    # Apps root has ONLY the Que folder — no company homes were created.
+    # Apps root has only the Que folder; no company homes were created.
     apps_dir = que.parent
     created = {p.name for p in apps_dir.iterdir()}
     assert created == {"Que"}

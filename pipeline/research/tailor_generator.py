@@ -62,7 +62,7 @@ def generate(
     for attempt in range(_MAX_RETRIES):
         if attempt > 0:
             logger.info(
-                "Retrying tailoring JSON (attempt %d/%d) — last error: %s",
+                "Retrying tailoring JSON (attempt %d/%d), last error: %s",
                 attempt + 1, _MAX_RETRIES, last_error,
             )
 
@@ -80,7 +80,7 @@ def generate(
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError as e:
-            last_error = f"Invalid JSON — {e}"
+            last_error = f"Invalid JSON: {e}"
             messages.append({
                 "role": "user",
                 "content": (

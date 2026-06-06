@@ -32,7 +32,7 @@ def fetch_salary_intel(company: str, role: str, location: str = "") -> dict:
     """
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.info("PERPLEXITY_API_KEY not set — using OSS salary intel (BLS + H-1B LCA)")
+        logger.info("PERPLEXITY_API_KEY not set; using OSS salary intel (BLS + H-1B LCA)")
         try:
             from pipeline.research.salary_oss import fetch as oss_fetch
             result = oss_fetch(company, role, location)
@@ -43,7 +43,7 @@ def fetch_salary_intel(company: str, role: str, location: str = "") -> dict:
                 "raw":             result.get("raw_text", ""),
             }
         except ImportError:
-            logger.debug("salary_oss dependencies missing — skipping salary intel")
+            logger.debug("salary_oss dependencies missing; skipping salary intel")
             return _empty()
 
     loc_fragment = f" based in {location}" if location and location != "Not specified" else ""
@@ -143,7 +143,7 @@ def save_salary_intel(intel: dict, company: str, role: str, output_dir: Path) ->
     slug = re.sub(r"[^a-z0-9]+", "_", f"{company}_{role}".lower()).strip("_")[:60]
     out = output_dir / f"salary_intel_{slug}.txt"
     lines = [
-        f"SALARY INTELLIGENCE — {company} / {role}",
+        f"SALARY INTELLIGENCE: {company} / {role}",
         f"Estimated range: {intel.get('estimated_range', 'N/A')}",
         f"Confidence: {intel.get('confidence', 'unknown')}",
         f"Source note: {intel.get('source_note', '')}",

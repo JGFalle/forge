@@ -1,13 +1,13 @@
 """Generate the Resume Modifications PDF for a job application.
 
-Documents exactly what the tailoring pipeline changed:
+Documents what the tailoring pipeline changed:
   - Compensation (posted or estimated)
   - Job overview (location, remote, ATS, deadline)
   - Workday skills list (ready to paste into the ATS)
   - Headline, summary, competency rows, experience bullets, technical skills
 
-When deep exec intel is supplied (exec_intel_result), two reference sections are
-appended: "Why This Role" and "Talking Points" for application essay fields.
+When exec_intel_result is supplied, two reference sections are appended:
+"Why This Role" and "Talking Points" for application essay fields.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ def generate(
     slug: str,
     exec_intel_result: dict | None = None,
 ) -> Path:
-    """Build and save the Resume Modifications PDF. Returns the saved path."""
+    """Build and save the Resume Modifications PDF; returns the saved path."""
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / f"resume_modifications_{slug}.pdf"
 
@@ -86,7 +86,7 @@ def generate(
         canvas.saveState()
         canvas.setFont(fonts["regular"], 8)
         canvas.setFillColor(GRAY)
-        canvas.drawString(0.75 * inch, 0.4 * inch, f"Resume Modifications — {company} — CONFIDENTIAL")
+        canvas.drawString(0.75 * inch, 0.4 * inch, f"Resume Modifications: {company} | CONFIDENTIAL")
         canvas.drawRightString(letter[0] - 0.75 * inch, 0.4 * inch, f"Generated {today_str}")
         canvas.restoreState()
 
@@ -145,7 +145,7 @@ def _build_story(
     # Workday Skills
     workday_skills = _extract_workday_skills(jd, td)
     if workday_skills:
-        story.append(_section_bar("WORKDAY SKILLS — TYPE THESE IN", fonts))
+        story.append(_section_bar("WORKDAY SKILLS: TYPE THESE IN", fonts))
         story.append(Spacer(1, 6))
         story += _workday_skills_block(workday_skills, styles)
         story.append(Spacer(1, 10))
@@ -158,27 +158,27 @@ def _build_story(
     # Application Reference (from exec summary intel, when available)
     agg = (exec_intel_result or {}).get("aggregation", {})
     if agg and not agg.get("raw"):  # only show if aggregation succeeded
-        # Why This Role — 2-sentence distillation for essay fields
+        # "Why This Role" for essay fields
         why_text = _distill_why(agg.get("company_strategy", ""), agg.get("role_context", ""))
         if why_text:
             story.append(Spacer(1, 10))
             story.append(_section_bar("WHY THIS ROLE (for application essay fields)", fonts))
             story.append(Spacer(1, 6))
             story.append(Paragraph(
-                "<i>Use this when asked 'Why are you interested in this role?' or similar fields.</i>",
+                "<i>Use when asked 'Why are you interested in this role?' or similar.</i>",
                 styles["caption"],
             ))
             story.append(Spacer(1, 4))
             story.append(Paragraph(html.escape(why_text), styles["body"]))
 
-        # Interview Talking Points — visible while filling out behavioral/essay questions
+        # talking points for behavioral/essay questions
         talking_points = agg.get("interview_talking_points", [])
         if talking_points:
             story.append(Spacer(1, 10))
             story.append(_section_bar("TALKING POINTS (for behavioral / essay questions)", fonts))
             story.append(Spacer(1, 6))
             story.append(Paragraph(
-                "<i>Use these to frame behavioral answers and cover-letter-style essay fields.</i>",
+                "<i>Use these to frame behavioral answers and essay fields.</i>",
                 styles["caption"],
             ))
             story.append(Spacer(1, 4))
@@ -189,7 +189,7 @@ def _build_story(
 
 
 def _strip_md(text: str) -> str:
-    """Strip markdown bold/italic markers and citation numbers."""
+    """Strip markdown bold/italic and citation numbers."""
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     text = re.sub(r'\[\d+\]', '', text)
@@ -198,7 +198,7 @@ def _strip_md(text: str) -> str:
 
 
 def _distill_why(company_strategy: str, role_context: str) -> str:
-    """Build a 2-sentence 'Why This Role' brief from strategy + role context."""
+    """Two-sentence 'Why This Role' brief from strategy + role context."""
     def first_sentence(text: str) -> str:
         text = _strip_md(text)
         match = re.search(r'[^.!?]+[.!?]', text)
@@ -232,7 +232,7 @@ def _comp_block(jd: ParsedJD, salary_intel: dict, styles: dict) -> list:
         bg, border = GOLD_BG, GOLD_BORDER
     else:
         label = "Compensation"
-        value = "Not posted — market data unavailable"
+        value = "Not posted; market data unavailable"
         bg, border = GRAY_BG, CARD_BORDER
 
     cell_style = ParagraphStyle(
@@ -314,7 +314,7 @@ def _overview_block(jd: ParsedJD, styles: dict) -> list:
 
 
 def _extract_intro(raw_text: str) -> str:
-    """Pull the first substantive prose paragraph from the JD (not headers or bullets)."""
+    """First substantive prose paragraph from the JD (skips headers and bullets)."""
     if not raw_text:
         return ""
     paragraphs = re.split(r"\n{2,}", raw_text.strip())
@@ -359,7 +359,7 @@ def _user_skills() -> set[str]:
     skills = _cfg_get("user_skills", [])
     return {s.lower() for s in skills} if skills else set()
 
-# Generic filler words to strip from skill candidates
+# filler words to exclude from skill candidates
 _SKIP_TOKENS = {
     "and", "or", "the", "with", "for", "of", "in", "to", "a", "an",
     "experience", "background", "knowledge", "understanding", "ability",
@@ -368,25 +368,25 @@ _SKIP_TOKENS = {
 
 
 def _extract_workday_skills(jd: ParsedJD, td: dict) -> list[str]:
-    """Build a curated list of Workday-ready skill terms for this specific JD.
+    """Build a curated list of Workday-ready skill terms for this JD.
 
-    Sources (in priority order):
-    1. Individual skills parsed from the tailoring JSON technical_skills rows
-    2. Skill-like tokens from the competency rows
-    3. JD key_requirements cross-referenced against the user's skill set
+    Sources, in order:
+    1. Skills from tailoring JSON technical_skills rows
+    2. Skill-like tokens from competency rows
+    3. JD key_requirements matched against the user's skill set
 
-    Returns deduplicated, title-cased list sorted for readability.
+    Returns a deduplicated, sorted list.
     """
     candidates: set[str] = set()
 
-    # Source 1: technical_skills rows (comma-separated, already JD-aligned)
+    # source 1: technical_skills rows (comma-separated)
     for row in td.get("technical_skills", []):
         for token in row.split(","):
             clean = token.strip().strip("•").strip()
             if len(clean) > 2 and clean.lower() not in _SKIP_TOKENS:
                 candidates.add(clean)
 
-    # Source 2: competency rows - extract multi-word skill phrases
+    # source 2: competency rows
     for row in td.get("competencies", []):
         for token in row.split(","):
             clean = token.strip().strip("•").strip()
@@ -398,7 +398,7 @@ def _extract_workday_skills(jd: ParsedJD, td: dict) -> list[str]:
         if skill in jd_text_lower:
             candidates.add(skill.title())
 
-    # Deduplicate case-insensitively (prefer the casing from sources 1/2)
+    # deduplicate case-insensitively (prefer casing from sources 1/2)
     seen_lower: set[str] = set()
     final: list[str] = []
     for skill in sorted(candidates, key=lambda s: s.lower()):
@@ -410,7 +410,7 @@ def _extract_workday_skills(jd: ParsedJD, td: dict) -> list[str]:
 
 
 def _workday_skills_block(skills: list[str], styles: dict) -> list:
-    """Gold callout box listing exact skill terms to type into Workday."""
+    """Gold callout box listing skill terms to type into Workday."""
     items: list = []
 
     instruction_style = ParagraphStyle(
@@ -432,7 +432,7 @@ def _workday_skills_block(skills: list[str], styles: dict) -> list:
     # Instruction line
     items.append(Paragraph(
         "Workday Skills did not autofill. Type each skill below individually into the Skills search field. "
-        "These are exact-match terms aligned to this JD — each one is a verified capability.",
+        "These are exact-match terms aligned to this JD; each one is a verified capability.",
         instruction_style,
     ))
 
@@ -525,7 +525,7 @@ def _role_label(role_id: str, company: str) -> str:
     history = _cfg_get("career_history", [])
     for role in history:
         if role.get("id") == role_id:
-            return f"{role.get('company', company)} — {role.get('title', role_id)}"
+            return f"{role.get('company', company)}: {role.get('title', role_id)}"
     return f"{company} ({role_id})"
 
 

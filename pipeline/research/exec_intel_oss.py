@@ -1,15 +1,15 @@
-"""Open-source deep company intelligence — no Perplexity required.
+"""Open-source deep company intelligence (no Perplexity).
 
 Drop-in fallback for exec_intel.fetch_deep_intel / run_intel_council. Gathers
-web context with ddgs across the same five research angles, then synthesizes a
-structured brief with the local OSS LLM (Groq / Gemini / Ollama via
-utils.oss_llm). Returns the exact shapes exec_intel produces, so exec_summary
-and resume_mods render identically.
+web context with ddgs across the same five research angles, then synthesizes
+with the local OSS LLM (Groq / Gemini / Ollama via utils.oss_llm). Returns
+the same shapes exec_intel produces, so exec_summary and resume_mods render
+identically.
 
 Degradation ladder:
-  - ddgs + OSS LLM available -> synthesized briefs + full council
-  - ddgs only (no LLM)       -> raw search snippets as intel, minimal aggregation
-  - neither                  -> {} (caller treats exec intel as unavailable)
+  - ddgs + OSS LLM: synthesized briefs + full council
+  - ddgs only:      raw search snippets, minimal aggregation
+  - neither:        {} (caller treats exec intel as unavailable)
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def _search(query: str, max_results: int = 6) -> list[str]:
     try:
         from ddgs import DDGS
     except ImportError:
-        logger.debug("ddgs not installed — OSS exec intel cannot search")
+        logger.debug("ddgs not installed; OSS exec intel cannot search")
         return []
     try:
         with DDGS() as ddgs:
@@ -118,7 +118,7 @@ def fetch_deep_intel(
 
 
 def _fallback_aggregation(intel: dict[str, str]) -> dict:
-    """Minimal structured brief when no OSS LLM is available — surface raw intel."""
+    """Minimal structured brief when no OSS LLM is available (raw intel only)."""
     return {
         "company_strategy": intel.get("strategy", "") or "Not enough signal found.",
         "role_context": intel.get("role_context", "") or "Not enough signal found.",
@@ -145,7 +145,7 @@ def run_intel_council(
 
     from utils import oss_llm
     if oss_llm.available_provider() is None:
-        logger.info("No OSS LLM available — exec intel returns raw findings without council")
+        logger.info("No OSS LLM available; exec intel returns raw findings without council")
         return {
             "panel": {},
             "aggregation": _fallback_aggregation(intel),

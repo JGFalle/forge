@@ -2,14 +2,12 @@
 
 `make_slug` is the single source of truth for the short, lowercased,
 underscore-joined identifier used for local output directories and tailoring
-JSON filenames. It MUST stay byte-identical to the historical
-`run.py::_make_slug` / `pipeline.core._slug` implementations so existing folder
-naming is unchanged.
+JSON filenames. It must stay byte-identical to the historical
+`run.py::_make_slug` / `pipeline.core._slug` implementations.
 
-`safe_folder_name` produces a human-facing folder name (used for per-job
-subfolders in bulk multi-JD companies). Unlike `make_slug` it preserves spaces
-and casing, only stripping characters that are illegal or unsafe on a
-filesystem.
+`safe_folder_name` produces a human-facing folder name (per-job subfolders
+in bulk multi-JD companies). Unlike `make_slug` it preserves spaces and
+casing, only stripping filesystem-illegal characters.
 """
 
 import re
@@ -24,11 +22,10 @@ _DASH_VARIANTS = "‐‑‒–—―−"
 
 
 def make_slug(company: str, role: str) -> str:
-    """Short lowercase identifier for output dirs / tailoring filenames.
+    """Short lowercase identifier for output dirs and tailoring filenames.
 
-    Byte-identical to the historical `_make_slug`/`_slug`: lowercase, collapse
-    any run of non-alphanumerics to a single underscore, strip leading/trailing
-    underscores, truncate to 60 chars.
+    Lowercase, collapse any run of non-alphanumerics to a single underscore,
+    strip leading/trailing underscores, truncate to 60 chars.
     """
     combined = f"{company}_{role}".lower()
     return re.sub(r"[^a-z0-9]+", "_", combined).strip("_")[:60]
@@ -37,17 +34,13 @@ def make_slug(company: str, role: str) -> str:
 def safe_folder_name(role: str, max_length: int = 120) -> str:
     """Sanitize a role title into a safe, human-facing folder name.
 
-    Rules:
     - Normalize en/em/other dash variants to a plain hyphen.
-    - Replace "&" with " and " (space-padded), so "S&OE" reads as "S and OE"
-      and an already-spaced "Engineering & Systems" stays clean once whitespace
-      is collapsed.
-    - Remove filesystem-illegal chars (`< > : " / \\ | ? *`) and control chars.
-    - Collapse all whitespace runs to a single space.
-    - Strip leading/trailing whitespace, dots, and hyphens (no traversal, no
-      hidden-folder names, no trailing-dot Windows quirk).
-    - Truncate to `max_length` chars (then re-strip trailing junk).
-    - Never return an empty string: fall back to "Untitled".
+    - Replace "&" with " and " so "S&OE" reads as "S and OE".
+    - Remove filesystem-illegal chars and control chars.
+    - Collapse whitespace runs to a single space.
+    - Strip leading/trailing whitespace, dots, and hyphens.
+    - Truncate to max_length; re-strip trailing junk after truncation.
+    - Never returns empty: falls back to "Untitled".
     """
     if not role:
         return "Untitled"
