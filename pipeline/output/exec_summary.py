@@ -1,4 +1,4 @@
-"""Generate the comprehensive Executive Summary PDF.
+"""Generate the Executive Summary PDF.
 
 Sections:
   1. Compensation (posted or estimated)
@@ -7,11 +7,11 @@ Sections:
   4. Day in the Life
   5. Interview Prep (talking points + high-signal question)
   6. Red Flags / Tailwinds
-  7. Council Analysis (independent section — all panel reviews + synthesis)
+  7. Council Analysis (all panel reviews + synthesis)
 
-Renders the structured brief produced by research.exec_intel (Perplexity in
-cloud mode, ddgs + local LLM in OSS mode). The two paths return the same shape,
-so this renderer is backend-agnostic.
+Renders the structured brief from research.exec_intel (Perplexity in cloud
+mode, ddgs + local LLM in OSS mode). Both paths return the same shape, so
+this renderer is backend-agnostic.
 """
 
 from __future__ import annotations
@@ -110,7 +110,7 @@ def generate(
         canvas.saveState()
         canvas.setFont(fonts["regular"], 8)
         canvas.setFillColor(GRAY)
-        canvas.drawString(0.75 * inch, 0.4 * inch, f"Executive Summary — {company} — CONFIDENTIAL")
+        canvas.drawString(0.75 * inch, 0.4 * inch, f"Executive Summary: {company} | CONFIDENTIAL")
         canvas.drawRightString(letter[0] - 0.75 * inch, 0.4 * inch, f"Generated {today_str}")
         canvas.restoreState()
 
@@ -149,7 +149,7 @@ def _build_story(
 
     if not agg:
         story.append(Paragraph(
-            "Executive intelligence not available — no research backend "
+            "Executive intelligence not available; no research backend "
             "(Perplexity or OSS) produced results.",
             styles["body"],
         ))
@@ -266,7 +266,7 @@ def _build_story(
 
     if agg.get("raw"):
         story.append(Paragraph(
-            "Aggregator parse failed — raw output truncated below. "
+            "Aggregator parse failed; raw output truncated below. "
             "This usually means the model response was cut off (token limit). "
             "Structured sections above may be incomplete.",
             styles["caption"],
@@ -291,7 +291,7 @@ def _comp_block(jd: ParsedJD, salary_intel: dict, styles: dict) -> list:
         value = html.escape(salary_intel["estimated_range"]) + " base"
         bg, border = GOLD_BG, GOLD_BORDER
     else:
-        label, value, bg, border = "Compensation", "Not posted — market data unavailable", GRAY_BG, CARD_BORDER
+        label, value, bg, border = "Compensation", "Not posted; market data unavailable", GRAY_BG, CARD_BORDER
 
     cell_style = ParagraphStyle("CompCell", fontName=styles["body"].fontName,
                                 fontSize=11, leading=16, textColor=BLACK)

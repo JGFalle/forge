@@ -107,7 +107,7 @@ def add_entry(
 
     existing = _find_entry(entries, company, role)
     if existing:
-        # Update in place — don't create a duplicate, don't reset status.
+        # update in place; don't create a duplicate or reset status
         # Downgrade guard: a re-add (e.g. a bulk pass tagging this as in_que)
         # must never lower the status of an entry that is already further along.
         # Only raise the status when the requested one ranks strictly higher.
@@ -125,7 +125,7 @@ def add_entry(
             existing["fit_score"] = fit_score
         if apply_by_date:
             existing["apply_by_date"] = apply_by_date
-        existing["history"].append({"date": today, "event": "pipeline_rerun", "note": "Pipeline rerun — materials regenerated"})
+        existing["history"].append({"date": today, "event": "pipeline_rerun", "note": "Pipeline rerun; materials regenerated"})
         save(entries)
         logger.info("Tracker entry updated (rerun): %s / %s", company, role)
         return existing
@@ -148,7 +148,7 @@ def add_entry(
         "recruiter_initiated": False,
         "contacts": [],
         "last_touchpoint": "",
-        "history": [{"date": today, "event": status, "note": "Pipeline run — materials generated"}],
+        "history": [{"date": today, "event": status, "note": "Pipeline run; materials generated"}],
     }
     entries.append(entry)
     save(entries)
@@ -215,7 +215,7 @@ def add_contact(
     entry["history"].append({
         "date": today,
         "event": "contact",
-        "note": f"{name} ({contact_type}) via {channel}" + (f" — {notes}" if notes else ""),
+        "note": f"{name} ({contact_type}) via {channel}" + (f": {notes}" if notes else ""),
     })
     if contact_type == "recruiter":
         entry["recruiter_initiated"] = True
@@ -275,7 +275,7 @@ def compute_next_action(entry: dict) -> dict:
     if days_silent >= cfg["max_silence_days"] and status not in ("prompted",):
         due = last_date + timedelta(days=cfg["max_silence_days"])
         return {
-            "text": f"No contact in {days_silent} days — escalate or close",
+            "text": f"No contact in {days_silent} days, escalate or close",
             "due_date": str(due),
             "urgency": _urgency(due, today),
         }
@@ -284,7 +284,7 @@ def compute_next_action(entry: dict) -> dict:
         date_added = date.fromisoformat(entry.get("date_added", str(today)))
         age = (today - date_added).days
         if age >= 3:
-            return {"text": "Apply now — materials sitting 3+ days", "due_date": str(date_added + timedelta(days=3)), "urgency": "urgent"}
+            return {"text": "Apply now (materials sitting 3+ days)", "due_date": str(date_added + timedelta(days=3)), "urgency": "urgent"}
         return {"text": "Complete prompts and apply", "due_date": "", "urgency": "ok"}
 
     if status == "applied":
@@ -292,13 +292,13 @@ def compute_next_action(entry: dict) -> dict:
         due = last_date + timedelta(days=window)
         if today < due:
             return {"text": f"Follow up in {(due - today).days}d if no response", "due_date": str(due), "urgency": _urgency(due, today)}
-        return {"text": "Follow up now — no response", "due_date": str(due), "urgency": "overdue"}
+        return {"text": "Follow up now, no response", "due_date": str(due), "urgency": "overdue"}
 
     if status == "phone_screen":
         due = last_date + timedelta(days=cfg["phone_screen_days"])
         if today <= due:
             return {"text": f"Follow up by {due.strftime('%b %d')} if no next steps", "due_date": str(due), "urgency": _urgency(due, today)}
-        return {"text": "Follow up now — no next steps after screen", "due_date": str(due), "urgency": "overdue"}
+        return {"text": "Follow up now, no next steps after screen", "due_date": str(due), "urgency": "overdue"}
 
     if status == "interview":
         due = last_date + timedelta(days=cfg["interview_days"])
@@ -306,7 +306,7 @@ def compute_next_action(entry: dict) -> dict:
 
     if status == "final_round":
         due = last_date + timedelta(days=cfg["final_round_days"])
-        return {"text": f"Follow up by {due.strftime('%b %d')} — decision pending", "due_date": str(due), "urgency": _urgency(due, today)}
+        return {"text": f"Follow up by {due.strftime('%b %d')}, decision pending", "due_date": str(due), "urgency": _urgency(due, today)}
 
     if status == "offer":
         return {"text": "Respond to offer or negotiate", "due_date": "", "urgency": "urgent"}
@@ -342,7 +342,7 @@ def cleanup_stale(days_threshold: int = 30, dry_run: bool = False) -> list[dict]
     Mark applications as 'ghosted' when no touchpoint in days_threshold days.
 
     Only targets entries with status in (applied, phone_screen, interview, final_round)
-    that have gone silent. 'prompted' and 'in_que' entries are skipped — they just
+    that have gone silent. 'prompted' and 'in_que' entries are skipped; they just
     haven't been submitted yet (in_que is pre-application backlog, not employer
     silence). Returns list of entries that were (or would be) updated.
     """
@@ -720,14 +720,14 @@ def display_pipeline() -> None:
     for e in active:
         action = compute_next_action(e)
         if action["urgency"] in ("overdue", "urgent"):
-            flags.append(f"  ⚡ {e['company'][:30]} — {action['text']}")
+            flags.append(f"  ⚡ {e['company'][:30]}: {action['text']}")
         abd = e.get("apply_by_date", "")
         if abd:
             try:
                 delta = (date.fromisoformat(abd) - today).days
                 if delta <= 7:
                     label = "PAST DUE" if delta < 0 else f"{delta}d left"
-                    flags.append(f"  ⚡ {e['company'][:30]} — Apply by {abd} ({label})")
+                    flags.append(f"  ⚡ {e['company'][:30]}: Apply by {abd} ({label})")
             except ValueError:
                 pass
 

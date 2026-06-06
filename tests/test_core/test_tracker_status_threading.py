@@ -106,7 +106,7 @@ def stub_pipeline_to_stage10(monkeypatch, tmp_path):
     monkeypatch.setattr(core, "_check_for_duplicate", lambda *a, **k: None)
     # _FakeJD posts a salary, so the salary_intel fetch branch is skipped (no API).
 
-    # Stage 1.5: viability — no block
+    # Stage 1.5: viability check, no block
     import pipeline.research.viability_checker as vc
     monkeypatch.setattr(vc, "check", lambda *a, **k: {"signals": []})
     monkeypatch.setattr(vc, "display", lambda *a, **k: None)

@@ -1,14 +1,13 @@
 """
 Core JD-to-deliverables pipeline, extracted from run.py.
 
-`process_jd` is the single callable that turns one job-description PDF into a
-full application folder (assessment, tailoring JSON, council, people intel,
-resume, cover letter, gap report, tracker entry, optional Google Drive copy).
+`process_jd` turns one job-description PDF into a full application folder
+(assessment, tailoring JSON, council, people intel, resume, cover letter,
+gap report, tracker entry, optional Google Drive copy).
 
 Both callers share this function:
   - run.py's single-JD CLI wrapper passes ``interactive=True`` and supplies
-    callbacks (``ProcessOptions.prompts``) that run the existing terminal
-    prompts.
+    callbacks (``ProcessOptions.prompts``) that run the terminal prompts.
   - the bulk orchestrator passes ``interactive=False`` with fixed
     ``auto_decisions`` and never reaches the prompt callbacks.
 
@@ -35,7 +34,7 @@ from utils.logging import add_file_handler, get_logger
 logger = get_logger(__name__)
 
 
-# ── Outcome constants ────────────────────────────────────────────────────────
+# Outcome constants
 SUCCESS = "success"
 SKIP = "skip"
 FAILURE = "failure"
@@ -43,9 +42,9 @@ FAILURE = "failure"
 
 @dataclass
 class AutoDecisions:
-    """How to resolve the mid-flow interactive decisions when not interactive.
+    """Non-interactive decision values used by the bulk path.
 
-    Used only when ``ProcessOptions.interactive`` is False (bulk path).
+    Used only when ``ProcessOptions.interactive`` is False.
     """
 
     # Ghost-risk HIGH: when False, skip the JD rather than auto-proceed.
@@ -62,10 +61,9 @@ class AutoDecisions:
 
 @dataclass
 class ProcessPrompts:
-    """Interactive decision callbacks owned by the caller (run.py wrapper).
+    """Callbacks for the terminal prompts, owned by the run.py wrapper.
 
-    Each callback runs the corresponding terminal prompt and returns the
-    answer. They are only invoked when ``ProcessOptions.interactive`` is True.
+    Invoked only when ``ProcessOptions.interactive`` is True.
     """
 
     # (signals_text) -> bool: proceed despite HIGH ghost risk?
@@ -86,12 +84,12 @@ class ProcessPrompts:
 
 @dataclass
 class ProcessOptions:
-    """Inputs and decision-routing for one ``process_jd`` call.
+    """Inputs and decision routing for one ``process_jd`` call.
 
-    ``tracker_status`` is the status a NEW tracker entry should be created with
-    for this run. Default ``"prompted"`` preserves single-JD behavior. Bulk sets
-    ``"in_que"`` so the SINGLE Stage 10 ``add_entry`` writes the right status
-    directly (the downgrade guard still protects an existing advanced entry).
+    ``tracker_status`` is the status written for a NEW entry. Default
+    ``"prompted"`` preserves single-JD behavior. Bulk sets ``"in_que"`` so the
+    Stage 10 ``add_entry`` writes the right status directly (the downgrade guard
+    still protects an existing advanced entry).
     """
 
     company: str = ""
@@ -110,8 +108,8 @@ class ProcessOptions:
 class ProcessResult:
     """Outcome of one ``process_jd`` call.
 
-    ``outcome`` is one of SUCCESS / SKIP / FAILURE. ``skip_reason`` is set for
-    skips (ghost risk, hard pass, dry run); ``error`` is set for failures.
+    ``outcome`` is one of SUCCESS / SKIP / FAILURE. ``skip_reason`` is set
+    for skips; ``error`` is set for failures.
     """
 
     outcome: str
@@ -155,7 +153,7 @@ def _slug(company: str, role: str) -> str:
 
 
 def _named_resume(slug: str) -> str:
-    """Slug-suffixed resume filename, derived from config (no personal data)."""
+    """Resume filename suffixed with slug, from config."""
     from utils.config import get
     fn = get("person.resume_filename", "YourName_Resume.docx")
     base = fn.replace(".docx", "")
@@ -163,7 +161,7 @@ def _named_resume(slug: str) -> str:
 
 
 def _named_cover(slug: str) -> str:
-    """Slug-suffixed cover letter filename, derived from config."""
+    """Cover letter filename suffixed with slug, from config."""
     from utils.config import get
     fn = get("person.resume_filename", "YourName_Resume.docx")
     base = fn.replace("_Resume.docx", "")
@@ -172,7 +170,7 @@ def _named_cover(slug: str) -> str:
 
 def _save_assessment(research_dir: Path, assessment, context: str, slug: str) -> None:
     lines = [
-        f"FIT ASSESSMENT — {slug}",
+        f"FIT ASSESSMENT: {slug}",
         f"Verdict: {assessment.verdict}  ({assessment.overall_score}/10)",
         "",
         assessment.summary,
@@ -187,7 +185,7 @@ def _save_assessment(research_dir: Path, assessment, context: str, slug: str) ->
         ("Company Tier",       assessment.company_tier),
     ]
     for label, dim in dims:
-        lines.append(f"{label}: {dim.score}/10 — {dim.rationale}")
+        lines.append(f"{label}: {dim.score}/10  {dim.rationale}")
     if context:
         lines += ["", "APPLICATION CONTEXT:", context]
     out = research_dir / f"assessment_{slug}.txt"
@@ -213,9 +211,9 @@ def _extract_hiring_manager_name(intel_md: str) -> str:
 def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     """Run the full JD-to-deliverables pipeline for one JD PDF.
 
-    Returns a ``ProcessResult`` instead of exiting. Mid-flow decisions are
-    routed through ``options.prompts`` (when interactive) or
-    ``options.auto_decisions`` (when not).
+    Returns a ``ProcessResult`` instead of calling sys.exit. Decisions route
+    through ``options.prompts`` (interactive) or ``options.auto_decisions``
+    (non-interactive).
     """
     args_context = options.context
     interactive = options.interactive
@@ -230,14 +228,14 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     from utils.progress import stage as show_stage
 
     logger.info("Stage 1: Ingesting %s", jd_pdf.name)
-    show_stage(1, f"Ingesting JD  —  {jd_pdf.name}")
+    show_stage(1, f"Ingesting JD: {jd_pdf.name}")
     raw_text = extract_text(jd_pdf)
     jd = parse(raw_text)
 
-    # Claude extraction — fires only when regex parse left company/role blank
+    # falls back to Claude when regex parse left company/role blank
     if not jd.company or not jd.role:
         from pipeline.ingest.jd_extractor import extract_company_role
-        logger.info("Company/role not found by regex — calling Claude extractor")
+        logger.info("Company/role not found by regex; calling Claude extractor")
         extracted_company, extracted_role = extract_company_role(raw_text)
         if extracted_company:
             jd.company = extracted_company
@@ -249,15 +247,15 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     today = datetime.now().strftime("%Y-%m-%d")
     slug = _slug(company, role)
 
-    # Duplicate detection — warn if already applied to this role
+    # warn if already applied to this role
     _check_for_duplicate(company, role)
 
-    # Stage 1.5: Job Viability Assessment — ghost job + freshness check before any API credits spent
+    # Stage 1.5: ghost job + freshness check before any API credits are spent
     from pipeline.research.viability_checker import check as viability_check
     from pipeline.research.viability_checker import display as viability_display
     from pipeline.research.viability_checker import should_block as viability_blocks
     logger.info("Stage 1.5: Job viability check for %s / %s", company, role)
-    show_stage(2, f"Job Viability  —  {company}")
+    show_stage(2, f"Job Viability: {company}")
     with spinner("Checking for ghost job signals"):
         viability = viability_check(company, role)
     viability_display(viability)
@@ -266,11 +264,11 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         signals_text = "; ".join(viability.get("signals", [])) or "see signals above"
         print(f"  HIGH ghost job risk detected: {signals_text}")
         if args_context:
-            print("  --context flag supplied — proceeding despite high ghost risk.")
+            print("  --context flag supplied; proceeding despite high ghost risk.")
         elif interactive:
             proceed = prompts.ghost_proceed(signals_text) if prompts.ghost_proceed else False
             if proceed is None:
-                # Non-interactive terminal signalled by None — failure (exit 1 in wrapper)
+                # None means non-interactive terminal; fail so wrapper can exit 1
                 return ProcessResult(
                     FAILURE, company=company, role=role,
                     error="ghost_non_interactive",
@@ -284,12 +282,12 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
                 SKIP, company=company, role=role, skip_reason="ghost_high",
             )
 
-    # Salary intel — fetch market data if JD did not post comp
+    # fetch market data if JD did not post comp
     salary_intel = {}
     original_salary = jd.salary_range  # preserve before any mutation
     if not jd.salary_range or jd.salary_range in ("Not listed", "Not specified"):
         from pipeline.research.salary_intel import fetch_salary_intel
-        logger.info("Salary not posted — querying market data for %s / %s", company, role)
+        logger.info("Salary not posted; querying market data for %s / %s", company, role)
         with spinner("Fetching market salary data"):
             salary_intel = fetch_salary_intel(company, role, jd.location or "")
         if salary_intel.get("estimated_range"):
@@ -299,7 +297,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     from pipeline.assessment.fit_assessor import assess, display
 
     logger.info("Stage 2: Running fit assessment for %s / %s", company, role)
-    show_stage(3, f"Fit Assessment  —  {company}")
+    show_stage(3, f"Fit Assessment: {company}")
     with spinner("Scoring role against vision profile"):
         assessment = assess(jd, company, role)
     display(assessment)
@@ -312,13 +310,13 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
 
     if assessment.verdict == "HARD_PASS":
         if args_context:
-            application_context = f"OVERRIDE — Hard pass overridden by user.\nReason: {args_context}"
+            application_context = f"OVERRIDE: Hard pass overridden by user.\nReason: {args_context}"
         elif interactive:
             override, context_reason = (
                 prompts.hard_pass_override() if prompts.hard_pass_override else (None, "")
             )
             if override is None:
-                # Non-interactive terminal signalled by None — failure (exit 1 in wrapper)
+                # None means non-interactive terminal; fail so wrapper can exit 1
                 return ProcessResult(
                     FAILURE, company=company, role=role,
                     fit_verdict=assessment.verdict, fit_score=assessment.overall_score,
@@ -330,7 +328,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
                     fit_verdict=assessment.verdict, fit_score=assessment.overall_score,
                     skip_reason="hard_pass_declined",
                 )
-            application_context = f"OVERRIDE — Hard pass overridden by user.\nReason: {context_reason}"
+            application_context = f"OVERRIDE: Hard pass overridden by user.\nReason: {context_reason}"
         elif not auto.override_hard_pass:
             return ProcessResult(
                 SKIP, company=company, role=role,
@@ -338,18 +336,18 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
                 skip_reason="hard_pass",
             )
         else:
-            reason = auto.hard_pass_reason or "Hard pass overridden — use standard JD-aligned framing."
-            application_context = f"OVERRIDE — Hard pass overridden by user.\nReason: {reason}"
+            reason = auto.hard_pass_reason or "Hard pass overridden; use standard JD-aligned framing."
+            application_context = f"OVERRIDE: Hard pass overridden by user.\nReason: {reason}"
 
     elif assessment.verdict == "STRETCH":
         _default_stretch = _cfg_get("tailoring.default_stretch_context",
-                                    "STRETCH — proceed with standard JD-aligned framing.")
+                                    "STRETCH: proceed with standard JD-aligned framing.")
         if args_context:
-            application_context = f"STRETCH APPLICATION — User context:\n{args_context}"
+            application_context = f"STRETCH APPLICATION: User context:\n{args_context}"
         elif interactive:
             note = prompts.stretch_context(assessment) if prompts.stretch_context else ""
             application_context = (
-                f"STRETCH APPLICATION — User gut-check answers:\n{note}"
+                f"STRETCH APPLICATION: User gut-check answers:\n{note}"
                 if note else _default_stretch
             )
         else:
@@ -370,7 +368,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
 
     add_file_handler(logger, app_folder / "run.log")
 
-    # Save assessment and write prompt files as reference artifacts
+    # save assessment and write prompt files for reference
     _save_assessment(app_folder / "research", assessment, application_context, slug)
     tailoring_prompt = build_tailoring_prompt(jd, company, role, slug, today, application_context)
     people_prompt = build_people_intel_prompt(jd, company, role, slug)
@@ -380,7 +378,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         save_salary_intel(salary_intel, company, role, app_folder / "research")
 
     if options.dry_run:
-        print("\nDRY RUN complete — folder created, no API calls made.")
+        print("\nDRY RUN complete: folder created, no API calls made.")
         print(f"  {app_folder}")
         return ProcessResult(
             SKIP, company=company, role=role, app_folder=app_folder,
@@ -398,7 +396,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
             output_dir=app_folder / "tailoring_json",
         )
 
-    # Stage 4a: Keyword gap + grammar pre-scan — both fed to council as context
+    # Stage 4a: keyword gap + grammar pre-scan, fed to council as context
     from pipeline.research.keyword_gap import compute_gap
     from pipeline.tailoring.json_validator import grammar_check as grammar_check_json
     with open(tailoring_path, encoding="utf-8") as _f:
@@ -409,9 +407,9 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
                 _pre_gap["coverage_pct"], len(_pre_gap["missing"]))
     _grammar_issues = grammar_check_json(_td_for_prescan)
     if _grammar_issues:
-        logger.info("Grammar pre-scan: %d field(s) flagged — council will review", len(_grammar_issues))
+        logger.info("Grammar pre-scan: %d field(s) flagged; council will review", len(_grammar_issues))
 
-    # Stage 4b: Council — reviews summary + cover letter, patches tailoring JSON with both
+    # Stage 4b: council reviews summary + cover letter, patches tailoring JSON
     council_path = None
     if _cfg_get("tailoring.council_enabled", True):
         from pipeline.tailoring.summary_council import display_result as display_council
@@ -433,18 +431,18 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
                 missing_keywords=_missing_terms,
                 application_context=application_context,
             )
-        # Surface any council errors immediately — don't let them hide until document review
+        # surface council errors immediately
         _council_errors = council_result.get("errors", [])
         if _council_errors:
             print(f"\n  {'!'*60}")
-            print(f"  COUNCIL ERRORS — {len(_council_errors)} model(s) failed.")
+            print(f"  COUNCIL ERRORS: {len(_council_errors)} model(s) failed.")
             print("  Resume and cover letter will use the original Claude draft.")
             print("  Fix: check your council provider keys / models")
             for _ce in _council_errors:
                 print(f"    {_ce[:120]}")
             print(f"  {'!'*60}\n")
 
-        # Patch tailoring JSON with council-revised fields before downstream stages use it
+        # patch tailoring JSON with council-revised fields
         _agg = council_result.get("aggregation", {})
         _patched = False
         if _agg.get("final_summary"):
@@ -468,7 +466,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     else:
         logger.debug("Council skipped (disabled in config)")
 
-    # Review gate — pause before applying JSON to DOCX so user can inspect/edit
+    # pause before applying JSON to DOCX so user can inspect/edit
     if _cfg_get("tailoring.review_gate", True) and interactive and prompts.review_gate:
         print(f"\n  Tailoring JSON: {tailoring_path}")
         prompts.review_gate(tailoring_path)
@@ -477,7 +475,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     from pipeline.research.intel_generator import generate as generate_intel
     from pipeline.research.perplexity_client import fetch_company_intel
     logger.info("Stage 5: Generating people intel")
-    show_stage(6, f"People Intelligence  —  {company}")
+    show_stage(6, f"People Intelligence: {company}")
     with spinner("Fetching live company intel"):
         perplexity_context = fetch_company_intel(company, role)
     if perplexity_context:
@@ -488,7 +486,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
             output_dir=app_folder / "people_intel",
             perplexity_context=perplexity_context,
         )
-    # Extract outreach messages immediately so they're copy-paste ready
+    # extract outreach messages while intel is fresh
     from pipeline.people_intel.outreach_extractor import display as display_outreach
     from pipeline.people_intel.outreach_extractor import extract as extract_outreach
     from pipeline.people_intel.outreach_extractor import save as save_outreach
@@ -497,7 +495,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     save_outreach(_outreach_msgs, app_folder / "people_intel", slug)
     display_outreach(_outreach_msgs)
 
-    # Inject personalized salutation into tailoring JSON if a hiring manager is identifiable
+    # inject salutation if a hiring manager name was found
     _hm_first_name = _extract_hiring_manager_name(_intel_md_text)
     if _hm_first_name:
         with open(tailoring_path, encoding="utf-8") as _f:
@@ -563,7 +561,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     display_gap(gap)
     save_gap_report(gap, company, role, app_folder / "research")
 
-    # Stage 9b: Resume Modifications PDF (always runs — fast, no extra API calls)
+    # Stage 9b: Resume Modifications PDF (fast, no extra API calls)
     from pipeline.output.resume_mods import generate as gen_resume_mods
     logger.info("Stage 9b: Resume modifications PDF")
     show_stage(11, "Resume Modifications PDF")
@@ -580,7 +578,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         exec_intel_result=None,  # populated later if user opts into exec summary
     )
 
-    # Stage 10: Tracker (upsert — no duplicate if pipeline reruns)
+    # Stage 10: tracker upsert (no duplicate if pipeline reruns)
     from pipeline.tracker.tracker import add_entry
     _override_reason = ""
     if "OVERRIDE" in application_context:
@@ -599,7 +597,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         status=options.tracker_status,
     )
 
-    # Stage 11: Google Drive — prompt user
+    # Stage 11: Google Drive
     show_done("Pipeline Complete")
     print(f"\n{'='*60}")
     print(f"  APPLICATION READY: {company}")
@@ -623,7 +621,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         print(f"  Deadline:     {jd.apply_by_date}")
     print(f"{'='*60}")
 
-    # Optional: full Executive Summary (deep intel + council — adds research calls)
+    # optional: full Executive Summary (deep intel + council, costs extra research calls)
     if interactive:
         run_exec = prompts.exec_summary() if prompts.exec_summary else False
     else:
@@ -632,7 +630,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
     if run_exec:
         from pipeline.output.exec_summary import generate as gen_exec_summary
         from pipeline.research.exec_intel import fetch_deep_intel, run_intel_council
-        show_stage(12, "Executive Summary (deep intel + council)")
+        show_stage(12, "Executive Summary")
         with spinner("Fetching deep company intel (5 research angles)"):
             exec_intel_raw = fetch_deep_intel(company, role, jd.raw_text)
         good = sum(1 for v in exec_intel_raw.values() if v and not v.startswith("[ERROR:"))
@@ -640,7 +638,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
         with spinner("Running intel council synthesis"):
             intel_result = run_intel_council(exec_intel_raw, jd.raw_text, company, role)
         if intel_result.get("errors"):
-            print(f"  ⚠  Council: {len(intel_result['errors'])} model(s) failed")
+            print(f"  Council: {len(intel_result['errors'])} model(s) failed")
         exec_summary_path = gen_exec_summary(
             jd=jd, company=company, role=role,
             salary_intel=salary_intel, intel_result=intel_result,
@@ -669,7 +667,7 @@ def process_jd(jd_pdf: Path, *, options: ProcessOptions) -> ProcessResult:
             gdrive_target=options.gdrive_target or "",
         )
 
-    # Prompt to mark application as submitted (interactive single-JD only)
+    # mark application as submitted (interactive single-JD only)
     if interactive and prompts.submit:
         prompts.submit(company, role)
 
@@ -714,7 +712,7 @@ def _copy_to_gdrive(
     from utils.config import get
 
     if gdrive_target:
-        # Exact path provided by the caller (PDF was picked from GDrive) — use it directly
+        # exact path provided by the caller (PDF was picked from GDrive)
         company_folder = Path(gdrive_target)
     else:
         mount = Path(get("gdrive.mount_base", "")).expanduser()
@@ -730,11 +728,11 @@ def _copy_to_gdrive(
     for d in (final_dir, draft_dir, research_dir):
         d.mkdir(parents=True, exist_ok=True)
 
-    # 01_Final Documents — clean filenames only
+    # 01_Final Documents: clean filenames only
     final_files = [resume_path, cover_path]
-    # 02_Draft Documents — slugged copies + plain-text cover letter
+    # 02_Draft Documents: slugged copies + plain-text cover letter
     draft_files = [named_resume, named_cover, cover_txt_path]
-    # 03_Research — intel PDF, exec summary, resume modifications, council report
+    # 03_Research: intel PDF, exec summary, resume modifications, council report
     research_files = [intel_pdf_path, exec_summary_path, resume_mods_path, council_path]
 
     copied: list[str] = []
@@ -755,7 +753,7 @@ def _copy_to_gdrive(
         from pipeline.bulk.lifecycle import mark_deliverables_complete
         mark_deliverables_complete(company_folder)
     except ImportError:
-        # bulk module not present — write the configured sentinel directly.
+        # bulk module not present; write the sentinel directly
         sentinel = get("bulk.sentinel", ".forge_complete")
         (company_folder / sentinel).write_text("", encoding="utf-8")
 
@@ -783,10 +781,10 @@ def _check_for_duplicate(company: str, role: str) -> None:
         return
     status = entry.get("status", "")
     if status in ("prompted",):
-        return  # Pipeline rerun before applying — expected, no warning needed
+        return  # pipeline rerun before applying; no warning needed
     if status in CLOSED_STATUSES:
         print(f"\n  Note: Tracker shows a CLOSED entry for {company} / {role} (status: {status}).")
-        print("  Continuing will regenerate materials — tracker entry will be updated.\n")
+        print("  Continuing will regenerate materials; tracker entry will be updated.\n")
     else:
         print(f"\n  Note: Already tracking {company} / {role} with status '{status}'.")
-        print("  Continuing will regenerate materials — tracker entry will be updated.\n")
+        print("  Continuing will regenerate materials; tracker entry will be updated.\n")

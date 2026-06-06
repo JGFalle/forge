@@ -1,4 +1,4 @@
-"""Tests for pipeline.bulk.discovery — pure Que scanning against tmp_path."""
+"""Tests for pipeline.bulk.discovery (pure Que scanning against tmp_path)."""
 
 from pathlib import Path
 

@@ -62,12 +62,12 @@ def check(company: str, role: str, job_url: str = "") -> dict:
     """
     api_key = os.getenv("PERPLEXITY_API_KEY", "")
     if not api_key:
-        logger.info("PERPLEXITY_API_KEY not set — using OSS viability check")
+        logger.info("PERPLEXITY_API_KEY not set; using OSS viability check")
         try:
             from pipeline.research.viability_oss import check as oss_check
             return oss_check(company, role, job_url=job_url)
         except ImportError:
-            logger.debug("viability_oss dependencies missing — skipping viability check")
+            logger.debug("viability_oss dependencies missing; skipping viability check")
             return _skipped()
 
     research = _fetch_viability_research(company, role, api_key)
@@ -100,7 +100,7 @@ def display(result: dict) -> None:
         print(f"  [+] {p}")
 
     if rec == "proceed_with_caution":
-        print(f"\n  Heads up: some signals worth monitoring — see above.")
+        print(f"\n  Heads up: some signals worth monitoring (see above).")
     elif rec == "verify_before_applying":
         print(f"\n  Recommend: verify this posting is still active before submitting.")
     print()

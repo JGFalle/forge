@@ -1,4 +1,4 @@
-"""Tests for pipeline/tracker/csv_sync.py — the CSV <-> JSON <-> HTML bridge."""
+"""Tests for pipeline/tracker/csv_sync.py (CSV <-> JSON <-> HTML bridge)."""
 
 import csv
 import os
@@ -234,7 +234,7 @@ def test_duplicate_company_role_round_trips_distinctly(tracker_files):
     assert (summary["changed"], summary["added"]) == (0, 0)
     entries = tracker.load()
     assert len(entries) == 2
-    # Each kept its own distinct values — neither collapsed onto the other.
+    # each kept its own distinct values; neither collapsed onto the other
     pairs = sorted((e["status"], e["salary_range"]) for e in entries)
     assert pairs == [("applied", "$180k"), ("prompted", "$25")]
 

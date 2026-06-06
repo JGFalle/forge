@@ -1,4 +1,4 @@
-"""Tests for pipeline.bulk.lifecycle — pure path planning + crash-safe placement.
+"""Tests for pipeline.bulk.lifecycle (pure path planning + crash-safe placement).
 
 All against tmp_path. No real Drive writes, no API calls.
 """

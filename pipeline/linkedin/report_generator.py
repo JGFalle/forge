@@ -173,7 +173,7 @@ def _experience_section(result: dict, profile: dict) -> str:
 
         Exact (case-insensitive) match first, then a substring match either way
         so a config company like "Acme Corp LLC" lines up with an "Acme Corp"
-        position (or vice versa). No hardcoded company names — config-driven.
+        position (or vice versa). No hardcoded company names; config-driven.
         """
         c = (company or "").lower().strip()
         if not c:

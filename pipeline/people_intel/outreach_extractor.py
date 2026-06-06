@@ -182,7 +182,7 @@ def save(messages: list[dict], output_dir: Path, slug: str) -> Path | None:
         status = "READY" if msg["valid"] else ("SHORT" if msg["char_count"] < _TARGET_MIN else "TRIM")
         lines += [
             f"[{i}] {msg['name'] or 'Contact'}"
-            + (f" — {msg['title']}" if msg["title"] else ""),
+            + (f", {msg['title']}" if msg["title"] else ""),
             f"    {msg['char_count']} chars  [{status}]"
             + (f"  ⚠  {msg['warning']}" if msg["warning"] else ""),
             "",
