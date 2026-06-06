@@ -20,8 +20,13 @@ Drop a job description PDF. The pipeline runs:
 7. **Generates the cover letter** - DOCX plus plain text for ATS paste boxes, word count enforced
 8. **People intel** - Claude researches the company and hiring team, writes LinkedIn outreach messages ready to copy-paste
 9. **Keyword gap report** - shows which JD terms are missing from your materials
-10. **Executive summary PDF** - comp data, JD overview, Workday skills, resume changes
+10. **Resume modifications PDF** - comp data, JD overview, Workday skills, and exactly what the tailoring changed
 11. **Google Drive sync** - organizes everything into company-specific folders (optional)
+
+Two extras sit on top of this single-JD flow:
+
+- **Deep executive summary** (opt-in) - a separate, prompted step that gathers deep company intel (strategy, role context, day-in-the-life, interview prep, red flags, tailwinds) and runs a multi-model council, then renders an executive briefing PDF. Perplexity in cloud mode, `ddgs` + a local LLM in OSS mode.
+- **Bulk mode** (`--bulk`) - batch-process a whole "Que" folder of JD PDFs from Google Drive in one run, with crash-safe placement, skip-if-already-done, and a read-only dry-run plan.
 
 ---
 
@@ -149,13 +154,23 @@ python run.py --regen-cover outputs/2026-01-15_acme_director_ops/
 
 # Regenerate people intel only
 python run.py --regen-intel outputs/2026-01-15_acme_director_ops/
+
+# Regenerate the deep executive summary (deep intel + council) for an existing folder
+python run.py --regen-exec-summary outputs/2026-01-15_acme_director_ops/
 ```
 
 ### Tracker and follow-ups
 
 ```bash
-# Open the application pipeline dashboard (HTML)
+# Open the application pipeline dashboard (HTML). Folds in any spreadsheet edits first.
 python run.py --tracker
+
+# Reconcile the Excel-editable CSV with the JSON, then regenerate CSV + HTML.
+# Edit application_tracker.csv in Excel, then run this to fold the edits back in.
+python run.py --sync
+
+# Find and merge duplicate (company, role) tracker entries (previews first, then asks to apply)
+python run.py --dedupe
 
 # Draft a follow-up message for an application that's gone quiet
 python run.py --draft-followup "Acme Corp" "Director of Operations"
@@ -177,6 +192,28 @@ python run.py --email-check
 # Mark applications older than 30 days with no response as ghosted
 python run.py --cleanup
 ```
+
+### Bulk processing
+
+Drop a tree of JD PDFs into a `Que/<Company>/*.pdf` folder inside your Google Drive
+applications folder, then process the whole batch at once. The company name comes from
+the folder; each PDF is one role. Requires Google Drive configured (see below).
+
+```bash
+# Read-only plan: shows what would be generated, skipped, or left in the Que. Writes nothing.
+python run.py --bulk --dry-run
+
+# Process the batch for real
+python run.py --bulk
+
+# Smoke-test or cost-control: process at most N companies
+python run.py --bulk --bulk-limit 3
+```
+
+Each finished job is tagged `in_que` in the tracker and its JD is moved from the Que into
+the company's Applications folder. The move is crash-safe (copy, verify, then prune), and a
+`.forge_complete` marker lets a re-run skip jobs already done. Ghost-HIGH and hard-pass JDs
+are left in the Que and listed loudly for your review rather than silently processed.
 
 ### Other
 
@@ -391,7 +428,8 @@ These features don't touch any paid API - they work identically regardless of mo
 outputs/
 └── 2026-01-15_acme_corp_director_of_operations/
     ├── jd/                  original JD PDF
-    ├── research/            fit assessment, salary intel, gap report, council review PDF
+    ├── research/            fit assessment, salary intel, gap report, council review PDF,
+    │                        resume modifications PDF, exec summary PDF (if generated)
     ├── tailoring_json/      the Claude-generated tailoring JSON (key artifact - edit this)
     ├── resume/              tailored resume DOCX
     ├── cover_letter/        cover letter DOCX + plain text version
@@ -419,7 +457,7 @@ Check that your `discovery.target_titles` match real job board titles exactly, a
 Delete `config/token.json` and re-run - it'll trigger a fresh OAuth flow.
 
 **Council review errors**
-The council needs Perplexity. Check `PERPLEXITY_API_KEY` in `.env`. You can disable it with `tailoring.council_enabled: false` in config.
+The council uses Perplexity when `PERPLEXITY_API_KEY` is set, and otherwise falls back to an OSS panel (Groq + Gemini + Ollama) - so you need at least one of those configured. Disable it entirely with `tailoring.council_enabled: false` in config.
 
 ---
 
